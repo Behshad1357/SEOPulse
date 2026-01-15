@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://seo-pulse-xi.vercel.app/sitemap.xml
