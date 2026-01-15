@@ -1,28 +1,45 @@
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Calendar, Clock } from "lucide-react";
+
+export const metadata = {
+  title: "SEO Blog - Tips & Strategies | SEOPulse",
+  description: "Learn SEO strategies, tips, and best practices to grow your organic traffic. Expert insights from the SEOPulse team.",
+};
 
 const blogPosts = [
   {
     slug: "what-is-google-search-console",
-    title: "What is Google Search Console? A Beginner's Guide",
-    description: "Learn how to use Google Search Console to improve your website's SEO and track your search performance.",
-    date: "2024-01-15",
+    title: "What is Google Search Console? A Complete Beginner's Guide",
+    description: "Learn how to use Google Search Console to monitor your website's search performance, fix issues, and improve your SEO.",
+    date: "January 15, 2024",
     readTime: "5 min read",
+    category: "Beginner",
   },
   {
-    slug: "improve-ctr-seo",
-    title: "10 Ways to Improve Your Click-Through Rate (CTR)",
-    description: "Discover proven strategies to get more clicks from search results and boost your organic traffic.",
-    date: "2024-01-10",
+    slug: "improve-click-through-rate",
+    title: "10 Proven Ways to Improve Your Click-Through Rate (CTR)",
+    description: "Discover actionable strategies to get more clicks from search results and boost your organic traffic without changing your rankings.",
+    date: "January 10, 2024",
     readTime: "7 min read",
+    category: "Strategy",
   },
   {
-    slug: "ai-seo-tools",
-    title: "How AI is Changing SEO: Tools and Strategies for 2024",
-    description: "Explore how artificial intelligence is transforming SEO and how you can leverage AI tools to stay ahead.",
-    date: "2024-01-05",
+    slug: "ai-seo-tools-2024",
+    title: "How AI is Transforming SEO: Tools and Strategies for 2024",
+    description: "Explore how artificial intelligence is changing the SEO landscape and how you can leverage AI tools to stay ahead of the competition.",
+    date: "January 5, 2024",
     readTime: "6 min read",
+    category: "Trends",
+  },
+  {
+    slug: "small-business-seo-guide",
+    title: "The Complete SEO Guide for Small Businesses",
+    description: "A step-by-step guide to improving your small business's search visibility without expensive tools or agencies.",
+    date: "January 1, 2024",
+    readTime: "10 min read",
+    category: "Guide",
   },
 ];
 
@@ -31,50 +48,104 @@ export default function BlogPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="max-w-6xl mx-auto px-4 py-6 flex justify-between items-center">
           <Link href="/" className="text-xl font-bold text-blue-600">
             SEOPulse
           </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/pricing" className="text-gray-600 hover:text-gray-900">
+              Pricing
+            </Link>
+            <Link href="/signup">
+              <Button>Get Started</Button>
+            </Link>
+          </div>
         </div>
       </header>
 
-      {/* Blog Content */}
-      <main className="max-w-4xl mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">SEO Blog</h1>
-        <p className="text-gray-600 mb-12">
-          Tips, strategies, and insights to help you grow your organic traffic.
-        </p>
+      {/* Hero */}
+      <section className="bg-white py-16 border-b">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">SEO Blog</h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Tips, strategies, and insights to help you grow your organic traffic 
+            and improve your search rankings.
+          </p>
+        </div>
+      </section>
 
-        <div className="space-y-8">
+      {/* Blog Posts */}
+      <main className="max-w-6xl mx-auto px-4 py-12">
+        <div className="grid md:grid-cols-2 gap-8">
           {blogPosts.map((post) => (
-            <Card key={post.slug} className="hover:shadow-md transition-shadow">
+            <Card key={post.slug} className="hover:shadow-lg transition-shadow bg-white">
               <CardHeader>
-                <div className="flex items-center gap-4 text-sm text-gray-500 mb-2">
-                  <span>{post.date}</span>
-                  <span>•</span>
-                  <span>{post.readTime}</span>
+                <div className="flex items-center gap-4 mb-3">
+                  <span className="text-xs font-medium px-2 py-1 bg-blue-100 text-blue-600 rounded">
+                    {post.category}
+                  </span>
                 </div>
-                <CardTitle className="text-2xl">
-                  <Link href={`/blog/${post.slug}`} className="hover:text-blue-600">
+                <CardTitle className="text-xl">
+                  <Link href={`/blog/${post.slug}`} className="hover:text-blue-600 transition-colors">
                     {post.title}
                   </Link>
                 </CardTitle>
-                <CardDescription className="text-base">
+                <CardDescription className="text-base text-gray-600">
                   {post.description}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Link
-                  href={`/blog/${post.slug}`}
-                  className="text-blue-600 font-medium inline-flex items-center hover:underline"
-                >
-                  Read more <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      {post.date}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      {post.readTime}
+                    </span>
+                  </div>
+                  <Link
+                    href={`/blog/${post.slug}`}
+                    className="text-blue-600 font-medium inline-flex items-center hover:underline"
+                  >
+                    Read <ArrowRight className="w-4 h-4 ml-1" />
+                  </Link>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
+
+        {/* Newsletter CTA */}
+        <div className="mt-16 bg-blue-600 rounded-2xl p-8 md:p-12 text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">
+            Get SEO Tips in Your Inbox
+          </h2>
+          <p className="text-blue-100 mb-6 max-w-xl mx-auto">
+            Subscribe to our newsletter for weekly SEO tips, strategies, and updates.
+          </p>
+          <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="flex-1 px-4 py-3 rounded-lg text-gray-900"
+              required
+            />
+            <Button variant="secondary" size="lg">
+              Subscribe
+            </Button>
+          </form>
+        </div>
       </main>
+
+      {/* Footer */}
+      <footer className="bg-white border-t py-8">
+        <div className="max-w-6xl mx-auto px-4 text-center text-gray-500">
+          © {new Date().getFullYear()} SEOPulse. All rights reserved.
+        </div>
+      </footer>
     </div>
   );
 }
