@@ -17,21 +17,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get user profile
     const { data: profile } = await supabase
       .from("profiles")
       .select("stripe_customer_id, full_name")
       .eq("id", user.id)
       .single();
 
-    // Get or create Stripe customer
     const customer = await getOrCreateCustomer(
       user.email!,
       profile?.stripe_customer_id,
       profile?.full_name || undefined
     );
 
-    // Update customer ID in profile if new
     if (!profile?.stripe_customer_id) {
       await supabase
         .from("profiles")
@@ -39,34 +36,33 @@ export async function POST(request: Request) {
         .eq("id", user.id);
     }
 
-    // Create checkout session
     const selectedPlan = PLANS[plan as keyof typeof PLANS];
-    
+
     if (!selectedPlan.priceId) {
-      return NextResponse.json({ error: "Price ID not configured" }, { status: 400 });
+      return NextResponse.json({ error: "Price not configured" }, { status: 400 });
     }
+
+    // Use the checkout success page instead of direct dashboard
+    const successUrl = `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`;
 
     const session = await stripe.checkout.sessions.create({
       customer: customer.id,
       payment_method_types: ["card"],
-      line_items: [
-        {
-          price: selectedPlan.priceId,
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: selectedPlan.priceId, quantity: 1 }],
       mode: "subscription",
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?success=subscribed`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
-      metadata: {
-        userId: user.id,
-        plan,
-      },
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata: { userId: user.id, plan },
+      // Allow promotion codes
+      allow_promotion_codes: true,
+      // Collect billing address
+      billing_address_collection: "auto",
     });
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Checkout error:", error);
-    return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 });
+    return NextResponse.json({ error: "Checkout failed" }, { status: 500 });
   }
 }

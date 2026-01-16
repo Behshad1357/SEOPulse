@@ -29,16 +29,35 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make your app slow.
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protected routes
+  // Public routes that don't require authentication
+  const publicRoutes = [
+    "/",
+    "/login",
+    "/signup",
+    "/pricing",
+    "/about",
+    "/blog",
+    "/contact",
+    "/privacy",
+    "/terms",
+    "/checkout/success",  // Add this!
+    "/auth/callback",
+  ];
+
+  const isPublicRoute = publicRoutes.some(
+    (route) => request.nextUrl.pathname === route || 
+               request.nextUrl.pathname.startsWith("/blog/") ||
+               request.nextUrl.pathname.startsWith("/api/")
+  );
+
+  // Protected routes - redirect to login if not authenticated
   if (
     !user &&
+    !isPublicRoute &&
     request.nextUrl.pathname.startsWith("/dashboard")
   ) {
     const url = request.nextUrl.clone();
