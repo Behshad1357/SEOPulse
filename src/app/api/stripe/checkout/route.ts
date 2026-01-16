@@ -42,21 +42,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Price not configured" }, { status: 400 });
     }
 
-    // Use the checkout success page instead of direct dashboard
-    const successUrl = `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`;
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://seopulse.digital";
 
     const session = await stripe.checkout.sessions.create({
       customer: customer.id,
       payment_method_types: ["card"],
       line_items: [{ price: selectedPlan.priceId, quantity: 1 }],
       mode: "subscription",
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-      metadata: { userId: user.id, plan },
-      // Allow promotion codes
+      success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/pricing?canceled=true`,
+      metadata: { 
+        userId: user.id, 
+        plan,
+        email: user.email || "",
+      },
       allow_promotion_codes: true,
-      // Collect billing address
       billing_address_collection: "auto",
     });
 

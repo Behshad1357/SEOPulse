@@ -1,19 +1,39 @@
-import { type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
+  // List of public paths that don't need authentication check
+  const publicPaths = [
+    "/",
+    "/login",
+    "/signup",
+    "/pricing",
+    "/about",
+    "/blog",
+    "/contact",
+    "/privacy",
+    "/terms",
+    "/checkout",
+    "/auth",
+    "/api",
+  ];
+
+  // Check if the current path starts with any public path
+  const isPublicPath = publicPaths.some(
+    (path) => request.nextUrl.pathname === path || 
+              request.nextUrl.pathname.startsWith(`${path}/`)
+  );
+
+  // Skip middleware for public paths
+  if (isPublicPath) {
+    return NextResponse.next();
+  }
+
   return await updateSession(request);
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
