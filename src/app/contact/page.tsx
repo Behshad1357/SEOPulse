@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Mail, MessageSquare, Twitter, CheckCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Mail, MessageSquare, Clock, CheckCircle } from "lucide-react";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -14,14 +14,12 @@ export default function ContactPage() {
     subject: "",
     message: "",
   });
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [status, setStatus] = useState("idle");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("loading");
 
-    // Simulate form submission
-    // In production, connect to your email service or database
     setTimeout(() => {
       setStatus("success");
       setFormData({ name: "", email: "", subject: "", message: "" });
@@ -47,7 +45,7 @@ export default function ContactPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
           <p className="text-xl text-gray-600">
-            Have a question? We'd love to hear from you.
+            Have a question? We would love to hear from you.
           </p>
         </div>
 
@@ -58,8 +56,8 @@ export default function ContactPage() {
                 <Mail className="w-6 h-6 text-blue-600" />
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Email</h3>
-              <a href="mailto:support@seopulse.app" className="text-blue-600 hover:underline">
-                support@seopulse.app
+              <a href="mailto:support@seopulse.digital" className="text-blue-600 hover:underline">
+                support@seopulse.digital
               </a>
             </CardContent>
           </Card>
@@ -67,7 +65,7 @@ export default function ContactPage() {
           <Card className="text-center">
             <CardContent className="pt-6">
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Twitter className="w-6 h-6 text-blue-600" />
+                <MessageSquare className="w-6 h-6 text-blue-600" />
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Twitter</h3>
               <a href="https://twitter.com/seopulse" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
@@ -79,7 +77,7 @@ export default function ContactPage() {
           <Card className="text-center">
             <CardContent className="pt-6">
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageSquare className="w-6 h-6 text-blue-600" />
+                <Clock className="w-6 h-6 text-blue-600" />
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Response Time</h3>
               <p className="text-gray-600">Within 24 hours</p>
@@ -89,19 +87,18 @@ export default function ContactPage() {
 
         {/* Contact Form */}
         <Card className="max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle>Send us a message</CardTitle>
-            <CardDescription>
-              Fill out the form below and we'll get back to you as soon as possible.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="p-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Send us a message</h2>
+            <p className="text-gray-600 mb-6">
+              Fill out the form below and we will get back to you as soon as possible.
+            </p>
+
             {status === "success" ? (
               <div className="text-center py-8">
                 <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Message Sent!</h3>
                 <p className="text-gray-600">
-                  Thanks for reaching out. We'll get back to you within 24 hours.
+                  Thanks for reaching out. We will get back to you within 24 hours.
                 </p>
               </div>
             ) : (
