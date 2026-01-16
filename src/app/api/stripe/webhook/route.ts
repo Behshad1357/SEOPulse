@@ -10,6 +10,7 @@ export async function POST(request: Request) {
   const signature = headersList.get("stripe-signature");
 
   if (!signature) {
+    console.error("Webhook: No signature provided");
     return NextResponse.json({ error: "No signature" }, { status: 400 });
   }
 
@@ -26,6 +27,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
+  console.log(`Webhook received: ${event.type}`);
+
   try {
     switch (event.type) {
       case "checkout.session.completed": {
@@ -34,21 +37,17 @@ export async function POST(request: Request) {
         const plan = session.metadata?.plan;
 
         if (userId && plan) {
-          // Update user plan
           await supabaseAdmin
             .from("profiles")
             .update({ plan })
             .eq("id", userId);
 
-          // Create subscription record if subscription exists
           if (session.subscription) {
             const subscriptionId = typeof session.subscription === "string" 
               ? session.subscription 
               : session.subscription.id;
               
             const subscriptionData = await stripe.subscriptions.retrieve(subscriptionId);
-            
-            // Use type assertion to access properties
             const subAny = subscriptionData as any;
 
             await supabaseAdmin.from("subscriptions").upsert({
@@ -71,31 +70,73 @@ export async function POST(request: Request) {
       case "customer.subscription.updated": {
         const subscription = event.data.object as any;
 
+        const statusMap: Record<string, string> = {
+          active: "active",
+          past_due: "past_due",
+          canceled: "canceled",
+          unpaid: "inactive",
+          trialing: "trialing",
+          incomplete: "inactive",
+          incomplete_expired: "inactive",
+          paused: "paused",
+        };
+
+        const status = statusMap[subscription.status] || "inactive";
+
         await supabaseAdmin
           .from("subscriptions")
           .update({
-            status: subscription.status === "active" ? "active" : "inactive",
+            status,
             current_period_start: subscription.current_period_start 
-              ? new Date(subscription.current_period_start * 1000).toISOString() 
+              ? new Date(subscription.current_period_start * 1000).toISOString()
               : undefined,
-            current_period_end: subscription.current_period_end 
-              ? new Date(subscription.current_period_end * 1000).toISOString() 
+            current_period_end: subscription.current_period_end
+              ? new Date(subscription.current_period_end * 1000).toISOString()
               : undefined,
           })
           .eq("stripe_subscription_id", subscription.id);
+        
+        if (["canceled", "unpaid", "inactive"].includes(status)) {
+          const { data: sub } = await supabaseAdmin
+            .from("subscriptions")
+            .select("user_id")
+            .eq("stripe_subscription_id", subscription.id)
+            .single();
+
+          if (sub?.user_id) {
+            await supabaseAdmin
+              .from("profiles")
+              .update({ plan: "free" })
+              .eq("id", sub.user_id);
+          }
+        }
+        break;
+      }
+
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as any;
+        
+        if (invoice.subscription) {
+          const subscriptionId = typeof invoice.subscription === "string"
+            ? invoice.subscription
+            : invoice.subscription.id;
+
+          await supabaseAdmin
+            .from("subscriptions")
+            .update({ status: "past_due" })
+            .eq("stripe_subscription_id", subscriptionId);
+        }
         break;
       }
 
       case "customer.subscription.deleted": {
         const subscription = event.data.object as any;
 
-        // Update subscription status
         await supabaseAdmin
           .from("subscriptions")
           .update({ status: "canceled" })
           .eq("stripe_subscription_id", subscription.id);
 
-        // Downgrade user to free plan
         const { data: sub } = await supabaseAdmin
           .from("subscriptions")
           .select("user_id")

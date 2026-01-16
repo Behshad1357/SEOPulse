@@ -33,12 +33,37 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Only protect /dashboard routes
-  if (!user && request.nextUrl.pathname.startsWith("/dashboard")) {
+  // Define public paths that don't need authentication
+  const publicPaths = [
+    "/",
+    "/login",
+    "/signup",
+    "/pricing",
+    "/about",
+    "/blog",
+    "/contact",
+    "/privacy",
+    "/terms",
+    "/checkout",  // This covers /checkout/success
+    "/auth",
+    "/api",
+  ];
+
+  const isPublicPath = publicPaths.some(
+    (path) =>
+      request.nextUrl.pathname === path ||
+      request.nextUrl.pathname.startsWith(`${path}/`)
+  );
+
+  // Only redirect to login for protected routes when not authenticated
+  if (!user && !isPublicPath) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    // Preserve the original URL to redirect back after login
+    url.searchParams.set("redirectTo", request.nextUrl.pathname);
     return NextResponse.redirect(url);
   }
 
+  // IMPORTANT: Always return supabaseResponse to maintain cookies
   return supabaseResponse;
 }
