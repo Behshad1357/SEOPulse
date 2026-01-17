@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-04-30.basil" as any, // Use latest stable or cast to any
+  apiVersion: "2025-04-30.basil" as any,
   typescript: true,
 });
 
@@ -30,7 +30,7 @@ export const PLANS = {
     name: "Agency",
     price: 49,
     priceId: process.env.STRIPE_AGENCY_PRICE_ID,
-    websites: -1, // unlimited
+    websites: -1,
     features: [
       "Unlimited websites",
       "White-label reports",
@@ -56,7 +56,8 @@ export async function createCheckoutSession(
       },
     ],
     mode: "subscription",
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?success=subscribed`,
+    // FIXED: Changed from /dashboard/settings to /checkout/success
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
     metadata: {
       userId,
