@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { ConnectGoogleButton } from "@/components/dashboard/connect-google-button";
+import { CancelSubscriptionButton } from "@/components/dashboard/cancel-subscription-button";
 import { User, CreditCard, Link, CheckCircle } from "lucide-react";
 
 export default async function SettingsPage({
@@ -15,6 +16,14 @@ export default async function SettingsPage({
     .from("profiles")
     .select("*")
     .eq("id", user?.id)
+    .single();
+
+  // Get subscription details
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("user_id", user?.id)
+    .eq("status", "active")
     .single();
 
   // Await searchParams for Next.js 15
@@ -89,18 +98,25 @@ export default async function SettingsPage({
                   ? "5 websites, full AI insights"
                   : "Unlimited websites, white-label"}
               </p>
+              {subscription?.current_period_end && profile?.plan !== "free" && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Next billing: {new Date(subscription.current_period_end).toLocaleDateString()}
+                </p>
+              )}
             </div>
-            {profile?.plan === "free" && (
+            {profile?.plan === "free" ? (
               <a href="/pricing">
                 <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium">
                   Upgrade to Pro
                 </button>
               </a>
-            )}
-            {profile?.plan !== "free" && (
-              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                Active
-              </span>
+            ) : (
+              <div className="flex flex-col items-end gap-2">
+                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                  Active
+                </span>
+                <CancelSubscriptionButton />
+              </div>
             )}
           </div>
         </CardContent>
@@ -127,7 +143,7 @@ export default async function SettingsPage({
               <div>
                 <p className="font-medium text-gray-900">Google Search Console</p>
                 <p className="text-sm text-gray-500">
-                  {profile?.google_refresh_token ? "✅ Connected" : "Not connected"}
+                  {profile?.google_refresh_token ? "✓ Connected" : "Not connected"}
                 </p>
               </div>
             </div>
