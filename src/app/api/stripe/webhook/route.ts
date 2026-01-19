@@ -113,6 +113,30 @@ export async function POST(request: Request) {
         break;
       }
 
+      case "invoice.paid": {
+        const invoice = event.data.object as any;
+        console.log(`Invoice paid: ${invoice.id}`);
+        
+        // Update subscription dates on successful renewal
+        if (invoice.subscription) {
+          const subscriptionId = typeof invoice.subscription === "string"
+            ? invoice.subscription
+            : invoice.subscription.id;
+          
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId) as any;
+          
+          await supabaseAdmin
+            .from("subscriptions")
+            .update({
+              status: "active",
+              current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            })
+            .eq("stripe_subscription_id", subscriptionId);
+        }
+        break;
+      }
+      
       case "invoice.payment_failed": {
         const invoice = event.data.object as any;
         
