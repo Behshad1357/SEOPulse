@@ -211,8 +211,8 @@ export default function TermsPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">15. Contact Information</h2>
             <p>
               For questions about these Terms, please contact us at:{" "}
-              <a href="mailto:davoodshadmani1978@gmail.com" className="text-blue-600 hover:underline">
-                davoodshadmani1978@gmail.com
+              <a href="mailto:seopulse.help@gmail.com" className="text-blue-600 hover:underline">
+                seopulse.help@gmail.com
               </a>
             </p>
           </section>

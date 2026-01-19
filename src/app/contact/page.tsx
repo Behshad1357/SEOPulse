@@ -56,7 +56,7 @@ export default function ContactPage() {
                 <Mail className="w-6 h-6 text-blue-600" />
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Email</h3>
-              <a href="mailto:support@seopulse.digital" className="text-blue-600 hover:underline">
+              <a href="mailto:seopulse.help@gmail.com" className="text-blue-600 hover:underline">
                 support@seopulse.digital
               </a>
             </CardContent>
