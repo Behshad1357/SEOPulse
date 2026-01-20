@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { ArrowRight, Calendar, Clock } from "lucide-react";
+import { BlogNewsletter } from "@/components/blog-newsletter";
 
 export const metadata = {
   title: "SEO Blog - Tips & Strategies | SEOPulse",
@@ -27,7 +28,7 @@ const blogPosts = [
   },
   {
     slug: "ai-seo-tools-2026",
-    title: "How AI is Transforming SEO: Tools and Strategies for 2024",
+    title: "How AI is Transforming SEO: Tools and Strategies for 2026",
     description: "Explore how artificial intelligence is changing the SEO landscape and how you can leverage AI tools to stay ahead of the competition.",
     date: "January 5, 2026",
     readTime: "6 min read",
@@ -68,7 +69,7 @@ export default function BlogPage() {
         <div className="max-w-6xl mx-auto px-4 text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">SEO Blog</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Tips, strategies, and insights to help you grow your organic traffic 
+            Tips, strategies, and insights to help you grow your organic traffic
             and improve your search rankings.
           </p>
         </div>
@@ -119,25 +120,7 @@ export default function BlogPage() {
         </div>
 
         {/* Newsletter CTA */}
-        <div className="mt-16 bg-blue-600 rounded-2xl p-8 md:p-12 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Get SEO Tips in Your Inbox
-          </h2>
-          <p className="text-blue-100 mb-6 max-w-xl mx-auto">
-            Subscribe to our newsletter for weekly SEO tips, strategies, and updates.
-          </p>
-          <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded-lg text-gray-900"
-              required
-            />
-            <Button variant="secondary" size="lg">
-              Subscribe
-            </Button>
-          </form>
-        </div>
+        <BlogNewsletter source="blog-listing" />
       </main>
 
       {/* Footer */}
