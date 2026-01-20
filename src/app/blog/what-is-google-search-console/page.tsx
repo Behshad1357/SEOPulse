@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Clock } from "lucide-react";
+import { NewsletterSignup } from "@/components/newsletter-signup";
 
 export const metadata = {
   title: "What is Google Search Console? A Complete Beginner's Guide",
@@ -92,6 +93,14 @@ export default function BlogPost() {
               <Button>Start Free Trial</Button>
             </Link>
           </div>
+        </div>
+        {/* Newsletter Signup */}
+        <div className="mt-12 border-t pt-12">
+          <NewsletterSignup 
+            source="blog-gsc-guide"
+            title="Want More SEO Tips?"
+            description="Get weekly insights on how to grow your organic traffic with Google Search Console."
+          />
         </div>
       </article>
 
