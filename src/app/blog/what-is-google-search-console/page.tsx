@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Clock } from "lucide-react";
 
 export const metadata = {
-  title: "What is Google Search Console? A Complete Beginner's Guide | SEOPulse",
+  title: "What is Google Search Console? A Complete Beginner's Guide",
   description: "Learn how to use Google Search Console to monitor your website's search performance, fix issues, and improve your SEO.",
 };
 
