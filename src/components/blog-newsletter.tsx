@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 interface BlogNewsletterProps {
   source?: string;
@@ -51,6 +52,9 @@ export function BlogNewsletter({ source = "blog" }: BlogNewsletterProps) {
         <div className="text-5xl mb-4">🎉</div>
         <h2 className="text-2xl font-bold text-white mb-2">You&apos;re Subscribed!</h2>
         <p className="text-green-100">Check your inbox for SEO tips.</p>
+        <p className="text-green-200 text-xs mt-4">
+          You can <Link href="/unsubscribe" className="underline hover:text-white">unsubscribe</Link> anytime.
+        </p>
       </div>
     );
   }
@@ -83,7 +87,9 @@ export function BlogNewsletter({ source = "blog" }: BlogNewsletterProps) {
       {status === "error" && (
         <p className="text-red-200 text-sm mt-3">{message}</p>
       )}
-      <p className="text-blue-200 text-xs mt-4">No spam. Unsubscribe anytime.</p>
+      <p className="text-blue-200 text-xs mt-4">
+        No spam. <Link href="/unsubscribe" className="underline hover:text-white">Unsubscribe</Link> anytime.
+      </p>
     </div>
   );
 }
