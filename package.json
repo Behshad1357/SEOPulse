@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@radix-ui/react-alert-dialog": "^1.1.15",
     "@stripe/stripe-js": "^8.6.1",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.90.0",
