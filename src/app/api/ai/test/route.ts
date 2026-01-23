@@ -41,7 +41,7 @@ Return ONLY valid JSON array, nothing else.`;
     const text = response.text();
 
     // Try to parse the response
-    let parsed;
+    let parsed = null;
     let parseError = null;
     try {
       const cleaned = text
