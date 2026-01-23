@@ -36,6 +36,8 @@ interface GSCData {
 }
 
 export async function POST(request: Request) {
+  console.log("=== AI Insights API Called ===");
+  
   try {
     const supabase = await createClient();
     const {
@@ -43,19 +45,39 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser();
 
     if (!user) {
+      console.log("Error: Unauthorized");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Check if API key exists
     if (!process.env.GEMINI_API_KEY) {
       console.error("GEMINI_API_KEY not configured");
-      return NextResponse.json(
-        { insights: generateFallbackInsights(await request.json()) },
-        { status: 200 }
-      );
+      const body = await request.json();
+      return NextResponse.json({
+        insights: generateFallbackInsights(body),
+        source: "fallback",
+        reason: "API key not configured",
+      });
     }
 
+    console.log("Gemini API Key exists:", process.env.GEMINI_API_KEY.substring(0, 10) + "...");
+
     const gscData: GSCData = await request.json();
+    console.log("GSC Data received:", {
+      siteUrl: gscData.siteUrl,
+      clicks: gscData.totals?.clicks,
+      impressions: gscData.totals?.impressions,
+      queriesCount: gscData.queries?.length,
+    });
+
+    // If no data, return fallback
+    if (!gscData.totals || (gscData.totals.clicks === 0 && gscData.totals.impressions === 0)) {
+      console.log("No data available, returning fallback insights");
+      return NextResponse.json({
+        insights: generateNoDataInsights(gscData.siteUrl),
+        source: "no-data",
+      });
+    }
 
     // Build the prompt for AI analysis
     const prompt = `You are an SEO expert analyst. Analyze this Google Search Console data and provide exactly 3 actionable SEO insights.
@@ -69,28 +91,28 @@ PERFORMANCE SUMMARY:
 - Average Position: ${gscData.totals.position.toFixed(1)}
 
 WEEK-OVER-WEEK TRENDS:
-- Clicks: ${gscData.trends.clicks.percentage > 0 ? "+" : ""}${gscData.trends.clicks.percentage.toFixed(1)}%
-- Impressions: ${gscData.trends.impressions.percentage > 0 ? "+" : ""}${gscData.trends.impressions.percentage.toFixed(1)}%
-- CTR: ${gscData.trends.ctr.percentage > 0 ? "+" : ""}${gscData.trends.ctr.percentage.toFixed(1)}%
-- Position: ${gscData.trends.position.value > 0 ? "improved by " : "dropped by "}${Math.abs(gscData.trends.position.value).toFixed(1)} positions
+- Clicks: ${gscData.trends?.clicks?.percentage > 0 ? "+" : ""}${(gscData.trends?.clicks?.percentage || 0).toFixed(1)}%
+- Impressions: ${gscData.trends?.impressions?.percentage > 0 ? "+" : ""}${(gscData.trends?.impressions?.percentage || 0).toFixed(1)}%
+- CTR: ${gscData.trends?.ctr?.percentage > 0 ? "+" : ""}${(gscData.trends?.ctr?.percentage || 0).toFixed(1)}%
+- Position: ${(gscData.trends?.position?.value || 0) > 0 ? "improved by " : "dropped by "}${Math.abs(gscData.trends?.position?.value || 0).toFixed(1)} positions
 
 TOP KEYWORDS:
-${gscData.queries
+${(gscData.queries || [])
   .slice(0, 5)
   .map(
     (q, i) =>
       `${i + 1}. "${q.keyword}" - ${q.clicks} clicks, position ${q.position.toFixed(1)}, CTR ${(q.ctr * 100).toFixed(1)}%`
   )
-  .join("\n")}
+  .join("\n") || "No keywords data"}
 
 TOP PAGES:
-${gscData.pages
+${(gscData.pages || [])
   .slice(0, 3)
   .map(
     (p, i) =>
       `${i + 1}. ${p.page} - ${p.clicks} clicks, position ${p.position.toFixed(1)}`
   )
-  .join("\n")}
+  .join("\n") || "No pages data"}
 
 Provide exactly 3 insights. Focus on:
 1. Quick wins (high impressions but low CTR = improve meta descriptions)
@@ -123,8 +145,10 @@ Rules:
 - "type" must be one of: "opportunity", "anomaly", "recommendation"
 - "priority" must be one of: "high", "medium", "low"
 - "title" should be max 50 characters
-- "description" should be max 150 characters
+- "description" should be max 150 characters and include specific numbers from the data
 - Return ONLY the JSON array, nothing else`;
+
+    console.log("Calling Gemini API...");
 
     // Use Gemini AI
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -132,6 +156,8 @@ Rules:
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const responseText = response.text();
+
+    console.log("Gemini raw response:", responseText.substring(0, 200) + "...");
 
     // Parse the AI response
     let insights;
@@ -148,9 +174,11 @@ Rules:
       if (!Array.isArray(insights)) {
         throw new Error("Response is not an array");
       }
+      
+      console.log("Successfully parsed", insights.length, "insights");
     } catch (parseError) {
-      console.error("Failed to parse Gemini response:", responseText);
-      console.error("Parse error:", parseError);
+      console.error("Failed to parse Gemini response:", parseError);
+      console.error("Raw response was:", responseText);
       // Return fallback insights if parsing fails
       insights = generateFallbackInsights(gscData);
     }
@@ -166,7 +194,12 @@ Rules:
       created_at: new Date().toISOString(),
     }));
 
-    return NextResponse.json({ insights: formattedInsights });
+    console.log("Returning", formattedInsights.length, "formatted insights");
+
+    return NextResponse.json({ 
+      insights: formattedInsights,
+      source: "gemini",
+    });
   } catch (error) {
     console.error("AI insights error:", error);
 
@@ -175,12 +208,14 @@ Rules:
       const body = await request.clone().json();
       return NextResponse.json({
         insights: generateFallbackInsights(body),
+        source: "error-fallback",
+        error: error instanceof Error ? error.message : "Unknown error",
       });
     } catch {
-      return NextResponse.json(
-        { error: "Failed to generate insights", insights: [] },
-        { status: 500 }
-      );
+      return NextResponse.json({
+        error: "Failed to generate insights",
+        insights: [],
+      });
     }
   }
 }
@@ -188,13 +223,46 @@ Rules:
 // Validate insight type
 function validateType(type: string): "opportunity" | "anomaly" | "recommendation" {
   const validTypes = ["opportunity", "anomaly", "recommendation"];
-  return validTypes.includes(type) ? (type as any) : "recommendation";
+  return validTypes.includes(type) ? (type as "opportunity" | "anomaly" | "recommendation") : "recommendation";
 }
 
 // Validate priority
 function validatePriority(priority: string): "high" | "medium" | "low" {
   const validPriorities = ["high", "medium", "low"];
-  return validPriorities.includes(priority) ? (priority as any) : "medium";
+  return validPriorities.includes(priority) ? (priority as "high" | "medium" | "low") : "medium";
+}
+
+// Insights for sites with no data
+function generateNoDataInsights(siteUrl: string) {
+  return [
+    {
+      id: `no-data-1-${Date.now()}`,
+      website_id: siteUrl,
+      type: "recommendation" as const,
+      title: "Submit Your Sitemap",
+      description: "Submit your sitemap.xml to Google Search Console to help Google discover and index your pages faster.",
+      priority: "high" as const,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: `no-data-2-${Date.now()}`,
+      website_id: siteUrl,
+      type: "recommendation" as const,
+      title: "Create Quality Content",
+      description: "Focus on creating helpful, original content that answers user questions. This is the foundation of good SEO.",
+      priority: "medium" as const,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: `no-data-3-${Date.now()}`,
+      website_id: siteUrl,
+      type: "opportunity" as const,
+      title: "Be Patient with New Sites",
+      description: "New websites typically take 2-4 weeks to start appearing in search results. Keep creating content!",
+      priority: "low" as const,
+      created_at: new Date().toISOString(),
+    },
+  ];
 }
 
 // Fallback insights if AI fails
@@ -230,7 +298,7 @@ function generateFallbackInsights(data: GSCData) {
   }
 
   // Traffic trend insight
-  if (data.trends && data.trends.clicks.percentage !== 0) {
+  if (data.trends && data.trends.clicks && data.trends.clicks.percentage !== 0) {
     insights.push({
       type: data.trends.clicks.percentage > 0 ? "opportunity" : "anomaly",
       title:
@@ -253,5 +321,10 @@ function generateFallbackInsights(data: GSCData) {
     });
   }
 
-  return insights.slice(0, 3);
+  return insights.slice(0, 3).map((insight, index) => ({
+    id: `fallback-${Date.now()}-${index}`,
+    website_id: data.siteUrl || "unknown",
+    ...insight,
+    created_at: new Date().toISOString(),
+  }));
 }
