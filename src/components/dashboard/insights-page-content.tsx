@@ -19,7 +19,9 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { useGSCData } from "@/hooks/useGSCData";
-
+import { SEOHealthScore } from "@/components/dashboard/seo-health-score";
+import { KeywordOpportunities } from "@/components/dashboard/keyword-opportunities";
+import { SEOChecklist } from "@/components/dashboard/seo-checklist";
 interface Insight {
   id: string;
   website_id: string;
@@ -437,7 +439,27 @@ export function InsightsPageContent({
           </CardContent>
         </Card>
       )}
+      {/* Add after the Data Summary Card */}
 
+        {/* SEO Health Score */}
+        {data && (
+        <SEOHealthScore
+            clicks={data.totals.clicks}
+            impressions={data.totals.impressions}
+            ctr={data.totals.ctr}
+            position={data.totals.position}
+        />
+        )}
+
+        {/* Keyword Opportunities */}
+        {data && data.queries && data.queries.length > 0 && (
+        <KeywordOpportunities keywords={data.queries} />
+        )}
+
+        {/* SEO Checklist */}
+        {selectedSite && (
+        <SEOChecklist siteUrl={selectedSite} />
+        )}
       {/* Loading Insights */}
       {loading && (
         <Card>
