@@ -1,230 +1,232 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms of Service | SEOPulse",
+  description: "Terms of Service for SEOPulse - AI-powered SEO analytics platform",
+};
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="border-b">
-        <div className="max-w-4xl mx-auto px-4 py-6 flex justify-between items-center">
-          <Link href="/" className="text-xl font-bold text-blue-600">
-            SEOPulse
-          </Link>
-          <Link href="/signup">
-            <Button>Get Started</Button>
-          </Link>
+      <div className="bg-white border-b">
+        <div className="max-w-4xl mx-auto px-4 py-12">
+          <h1 className="text-4xl font-bold text-gray-900">Terms of Service</h1>
+          <p className="text-gray-500 mt-2">Last updated: January 24, 2026</p>
         </div>
-      </header>
+      </div>
 
       {/* Content */}
-      <main className="max-w-4xl mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Terms of Service</h1>
-        <p className="text-gray-500 mb-8">Last updated: January 18, 2026</p>
-
-        <div className="space-y-8 text-gray-600">
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        <div className="bg-white rounded-xl shadow-sm border p-8 space-y-8">
+          
+          {/* Section 1 */}
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Acceptance of Terms</h2>
-            <p className="leading-relaxed">
-              By accessing or using SEOPulse (the &quot;Service&quot;), located at seopulse.digital, you agree to be bound by these Terms of Service (&quot;Terms&quot;).
-              If you do not agree to these Terms, do not use the Service. These Terms constitute a legally binding agreement between you and SEOPulse.
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Acceptance of Terms</h2>
+            <p className="text-gray-600 leading-relaxed">
+              By accessing or using SEOPulse (&quot;Service&quot;), you agree to be bound by these Terms of Service. 
+              If you disagree with any part of these terms, you may not access the Service. These Terms apply 
+              to all visitors, users, and others who access or use the Service.
             </p>
           </section>
 
+          {/* Section 2 */}
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">2. Description of Service</h2>
-            <p className="mb-2">
-              SEOPulse provides SEO analytics and insights by connecting to your Google
-              Search Console account. The Service includes:
-            </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>SEO performance dashboards</li>
-              <li>AI-powered insights and recommendations</li>
-              <li>Keyword and ranking tracking</li>
-              <li>Report generation</li>
-            </ul>
-            <p className="mt-4">
-              We reserve the right to modify, suspend, or discontinue any part of the Service at any time with or without notice.
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. Description of Service</h2>
+            <p className="text-gray-600 leading-relaxed">
+              SEOPulse is an AI-powered SEO analytics platform that integrates with Google Search Console 
+              to provide insights, recommendations, and tracking for website owners. The Service includes 
+              dashboard analytics, AI-generated insights, keyword tracking, and SEO recommendations.
             </p>
           </section>
 
+          {/* Section 3 */}
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">3. Account Registration</h2>
-            <p className="mb-2">To use the Service, you must:</p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Provide accurate and complete registration information</li>
-              <li>Maintain the security of your account credentials</li>
-              <li>Notify us immediately of any unauthorized use of your account</li>
-              <li>Be at least 18 years old</li>
-              <li>Not share your account with others</li>
-            </ul>
-            <p className="mt-4">
-              You are responsible for all activities that occur under your account.
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">3. User Accounts</h2>
+            <div className="text-gray-600 leading-relaxed space-y-3">
+              <p>When you create an account with us, you must provide accurate, complete, and current information. Failure to do so constitutes a breach of the Terms.</p>
+              <p>You are responsible for safeguarding the password used to access the Service and for any activities or actions under your password.</p>
+              <p>You agree not to disclose your password to any third party and to notify us immediately upon becoming aware of any breach of security or unauthorized use of your account.</p>
+            </div>
+          </section>
+
+          {/* Section 4 */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">4. Google API Services</h2>
+            <div className="text-gray-600 leading-relaxed space-y-3">
+              <p>SEOPulse uses Google API Services to access your Google Search Console data. By using our Service, you also agree to be bound by Google&apos;s Terms of Service.</p>
+              <p>We access only the data necessary to provide our Service, specifically Google Search Console performance data. We do not store your raw Google data permanently; it is fetched in real-time and cached temporarily for performance.</p>
+              <p>You can revoke our access to your Google data at any time through the Settings page or through your Google Account settings.</p>
+            </div>
+          </section>
+
+          {/* Section 5 */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">5. Subscription and Payments</h2>
+            <div className="text-gray-600 leading-relaxed space-y-3">
+              <p>Some features of SEOPulse require a paid subscription. By subscribing, you agree to pay all fees associated with your chosen plan.</p>
+              <p>Subscriptions are billed in advance on a monthly or annual basis depending on your selection. You may cancel your subscription at any time through your account settings.</p>
+              <p>Refunds are handled on a case-by-case basis. Contact support for refund requests within 14 days of purchase.</p>
+            </div>
+          </section>
+
+          {/* Section 6 */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">6. Acceptable Use</h2>
+            <div className="text-gray-600 leading-relaxed space-y-3">
+              <p>You agree not to use the Service:</p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>For any unlawful purpose or to solicit others to perform unlawful acts</li>
+                <li>To violate any international, federal, provincial, or state regulations, rules, laws, or local ordinances</li>
+                <li>To infringe upon or violate our intellectual property rights or the intellectual property rights of others</li>
+                <li>To harass, abuse, insult, harm, defame, slander, disparage, intimidate, or discriminate</li>
+                <li>To submit false or misleading information</li>
+                <li>To upload or transmit viruses or any other type of malicious code</li>
+                <li>To interfere with or circumvent the security features of the Service</li>
+              </ul>
+            </div>
+          </section>
+
+          {/* Section 7 */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">7. Data and Privacy</h2>
+            <div className="text-gray-600 leading-relaxed space-y-3">
+              <p>
+                Your privacy is important to us. Please review our{" "}
+                <a href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</a>, 
+                which explains how we collect, use, and protect your personal information.
+              </p>
+              <p>By using SEOPulse, you consent to the collection and use of information as outlined in our Privacy Policy.</p>
+            </div>
+          </section>
+
+          {/* Section 8 */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">8. Intellectual Property</h2>
+            <div className="text-gray-600 leading-relaxed space-y-3">
+              <p>The Service and its original content, features, and functionality are and will remain the exclusive property of SEOPulse and its licensors.</p>
+              <p>The Service is protected by copyright, trademark, and other laws. Our trademarks and trade dress may not be used in connection with any product or service without prior written consent.</p>
+            </div>
+          </section>
+
+          {/* Section 9 - UPDATED */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">9. Disclaimer</h2>
+            <div className="text-gray-600 leading-relaxed space-y-3 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="font-semibold text-gray-800">
+                THE SERVICE IS PROVIDED ON AN &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot; BASIS WITHOUT ANY WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED.
+              </p>
+              <p>
+                SEOPulse does not warrant that the Service will be uninterrupted, timely, secure, or error-free. 
+                Results obtained from the use of the Service may not be accurate or reliable.
+              </p>
+              <p className="font-semibold text-gray-800">
+                SEO RESULTS AND RECOMMENDATIONS ARE PROVIDED FOR INFORMATIONAL PURPOSES ONLY AND ARE NOT GUARANTEED. 
+                SEOPULSE IS NOT A LAWYER, FINANCIAL ADVISOR, OR CERTIFIED SEO CONSULTANT. 
+                CONSULT APPROPRIATE PROFESSIONALS FOR SPECIFIC ADVICE.
+              </p>
+              <p>
+                No advice or information obtained through the Service shall create any warranty not expressly stated in these Terms.
+              </p>
+            </div>
+          </section>
+
+          {/* Section 10 */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">10. Limitation of Liability</h2>
+            <p className="text-gray-600 leading-relaxed">
+              In no event shall SEOPulse, nor its directors, employees, partners, agents, suppliers, or affiliates, 
+              be liable for any indirect, incidental, special, consequential, or punitive damages, including without 
+              limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access 
+              to or use of or inability to access or use the Service.
             </p>
           </section>
 
+          {/* Section 11 */}
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">4. Subscription and Payments</h2>
-
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">4.1 Free Plan</h3>
-            <p className="mb-4">
-              The free plan provides limited access to the Service at no cost.
-              We reserve the right to modify free plan features at any time.
-            </p>
-
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">4.2 Paid Plans</h3>
-            <ul className="list-disc pl-6 space-y-2 mb-4">
-              <li>Paid subscriptions are billed monthly</li>
-              <li>Payments are processed securely through Stripe</li>
-              <li>Subscriptions auto-renew unless cancelled before the next billing date</li>
-              <li>Prices are in US Dollars (USD) and exclude applicable taxes</li>
-              <li>You can cancel your subscription at any time through your account settings</li>
-            </ul>
-
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">4.3 Refund Policy</h3>
-            <p className="mb-2">
-              We offer a <strong>14-day money-back guarantee</strong> for first-time subscribers.
-              Contact us within 14 days of your first payment for a full refund.
-            </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Refund requests must be made within 14 days of the initial purchase</li>
-              <li>Refunds are only available for first-time subscribers</li>
-              <li>After 14 days, no refunds will be issued for the current billing period</li>
-              <li>Cancelled subscriptions remain active until the end of the current billing period</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">5. Acceptable Use</h2>
-            <p className="mb-2">You agree not to:</p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Violate any applicable laws or regulations</li>
-              <li>Infringe on intellectual property rights of others</li>
-              <li>Attempt to gain unauthorized access to the Service or its systems</li>
-              <li>Use the Service to harm, harass, or defraud others</li>
-              <li>Resell, redistribute, or sublicense the Service without our written permission</li>
-              <li>Use automated tools, bots, or scripts to access or scrape the Service</li>
-              <li>Interfere with or disrupt the Service or servers</li>
-              <li>Transmit viruses, malware, or other harmful code</li>
-              <li>Impersonate another person or entity</li>
-            </ul>
-            <p className="mt-4">
-              Violation of these terms may result in immediate termination of your account without refund.
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">11. Indemnification</h2>
+            <p className="text-gray-600 leading-relaxed">
+              You agree to defend, indemnify, and hold harmless SEOPulse and its licensees, employees, contractors, 
+              agents, officers, and directors from and against any and all claims, damages, obligations, losses, 
+              liabilities, costs, or debt arising from your use of the Service or violation of these Terms.
             </p>
           </section>
 
+          {/* Section 12 */}
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Intellectual Property</h2>
-            <p>
-              The Service, including all content, features, functionality, software, text, images, and design, is owned
-              by SEOPulse and protected by copyright, trademark, and other intellectual property laws. You may
-              not copy, modify, distribute, sell, or lease any part of the Service without our written
-              consent. You retain ownership of any data you provide to the Service.
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">12. Termination</h2>
+            <div className="text-gray-600 leading-relaxed space-y-3">
+              <p>We may terminate or suspend your account immediately, without prior notice or liability, for any reason, including breach of these Terms.</p>
+              <p>Upon termination, your right to use the Service will immediately cease. If you wish to terminate your account, you may do so through the Settings page.</p>
+            </div>
+          </section>
+
+          {/* Section 13 */}
+          <section>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">13. Governing Law</h2>
+            <p className="text-gray-600 leading-relaxed">
+              These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which 
+              SEOPulse operates, without regard to its conflict of law provisions. Any disputes arising from these 
+              Terms will be resolved in the courts of that jurisdiction.
             </p>
           </section>
 
+          {/* Section 14 */}
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">7. Data and Privacy</h2>
-            <p>
-              Your use of the Service is also governed by our{" "}
-              <Link href="/privacy" className="text-blue-600 hover:underline">
-                Privacy Policy
-              </Link>
-              , which is incorporated into these Terms by reference. By using the Service, you consent to our collection and use of data
-              as described in the Privacy Policy.
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">14. Changes to Terms</h2>
+            <p className="text-gray-600 leading-relaxed">
+              We reserve the right to modify or replace these Terms at any time. If a revision is material, we will 
+              try to provide at least 30 days&apos; notice prior to any new terms taking effect. What constitutes a 
+              material change will be determined at our sole discretion. Your continued use of the Service after 
+              changes constitutes acceptance of the new Terms.
             </p>
           </section>
 
+          {/* Section 15 */}
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">8. Third-Party Services</h2>
-            <p>
-              The Service integrates with third-party services including Google Search Console and Stripe.
-              Your use of these services is subject to their respective terms and privacy policies.
-              We are not responsible for the content, privacy practices, or actions of third-party services.
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">15. Severability</h2>
+            <p className="text-gray-600 leading-relaxed">
+              If any provision of these Terms is held to be unenforceable or invalid, such provision will be changed 
+              and interpreted to accomplish the objectives of such provision to the greatest extent possible under 
+              applicable law, and the remaining provisions will continue in full force and effect.
             </p>
           </section>
 
+          {/* Section 16 - NEW ACCESSIBILITY */}
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">9. Disclaimer of Warranties</h2>
-            <p className="uppercase text-sm">
-              THE SERVICE IS PROVIDED &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
-              INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
-              WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED, ERROR-FREE, SECURE, OR THAT IT WILL MEET YOUR SPECIFIC REQUIREMENTS.
-              SEO RESULTS AND RECOMMENDATIONS ARE PROVIDED FOR INFORMATIONAL PURPOSES ONLY AND ARE NOT GUARANTEED.
-            </p>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">16. Accessibility</h2>
+            <div className="text-gray-600 leading-relaxed space-y-3 bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p>
+                SEOPulse is committed to ensuring digital accessibility for all users. We strive to meet 
+                Web Content Accessibility Guidelines (WCAG) 2.1 Level AA standards.
+              </p>
+              <p>
+                If you are experiencing accessibility issues or require assistance, please contact us at{" "}
+                <a href="mailto:seopulse.help@gmail.com" className="text-blue-600 hover:underline">
+                  seopulse.help@gmail.com
+                </a>. We will work to address your concerns promptly.
+              </p>
+              <p>
+                While we make every reasonable effort to maintain accessibility, some limitations may exist 
+                due to third-party integrations. We appreciate your feedback to help us improve.
+              </p>
+            </div>
           </section>
 
+          {/* Section 17 */}
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">10. Limitation of Liability</h2>
-            <p className="uppercase text-sm">
-              TO THE MAXIMUM EXTENT PERMITTED BY LAW, SEOPULSE AND ITS OWNERS, EMPLOYEES, AND AFFILIATES SHALL NOT BE LIABLE FOR
-              ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO
-              LOSS OF PROFITS, DATA, BUSINESS OPPORTUNITIES, GOODWILL, OR OTHER INTANGIBLE LOSSES,
-              RESULTING FROM YOUR USE OF OR INABILITY TO USE THE SERVICE. OUR TOTAL LIABILITY SHALL NOT EXCEED
-              THE AMOUNT YOU PAID US IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.
-            </p>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">17. Contact Information</h2>
+            <div className="text-gray-600 leading-relaxed">
+              <p>If you have any questions about these Terms, please contact us:</p>
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <p><strong>Email:</strong> <a href="mailto:seopulse.help@gmail.com" className="text-blue-600 hover:underline">seopulse.help@gmail.com</a></p>
+                <p className="mt-2"><strong>Website:</strong> <a href="https://seopulse.digital" className="text-blue-600 hover:underline">https://seopulse.digital</a></p>
+              </div>
+            </div>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">11. Indemnification</h2>
-            <p>
-              You agree to indemnify, defend, and hold harmless SEOPulse and its owners, employees, and affiliates from
-              any claims, damages, losses, liabilities, and expenses (including reasonable attorneys&apos; fees) arising out of
-              your use of the Service, violation of these Terms, or infringement of any rights of another party.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">12. Termination</h2>
-            <p className="mb-2">
-              We may terminate or suspend your account at any time, with or without cause, with or without notice, for violation of these
-              Terms or for any other reason. You may cancel your account at any time through your account settings or by contacting us.
-            </p>
-            <p>
-              Upon termination:
-            </p>
-            <ul className="list-disc pl-6 space-y-2 mt-2">
-              <li>Your right to use the Service will cease immediately</li>
-              <li>You will not be entitled to any refund for the current billing period</li>
-              <li>We may delete your data after a reasonable period (typically 30 days)</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">13. Governing Law</h2>
-            <p>
-              These Terms shall be governed by and construed in accordance with the laws of the United States.
-              Any disputes arising from these Terms or the Service shall be resolved through binding arbitration
-              or in the courts located in the United States, and you consent to the jurisdiction of such courts.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">14. Changes to Terms</h2>
-            <p>
-              We reserve the right to modify these Terms at any time. We will notify you of material changes by
-              posting the updated Terms on this page and updating the &quot;Last updated&quot; date. Your continued use of
-              the Service after changes constitutes acceptance of the modified Terms.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">15. Contact Information</h2>
-            <p>
-              For questions about these Terms, please contact us at:{" "}
-              <a href="mailto:seopulse.help@gmail.com" className="text-blue-600 hover:underline">
-                seopulse.help@gmail.com
-              </a>
-            </p>
-          </section>
         </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t py-8 mt-16">
-        <div className="max-w-4xl mx-auto px-4 text-center text-gray-500">
-          © {new Date().getFullYear()} SEOPulse. All rights reserved.
-        </div>
-      </footer>
+      </div>
     </div>
   );
 }
