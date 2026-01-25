@@ -1,17 +1,19 @@
 import { google } from "googleapis";
 
 export function createOAuth2Client() {
-  // OAuth2 only takes 3 arguments: clientId, clientSecret, redirectUri
   return new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI // Use this OR the full URL, not both
+    process.env.GOOGLE_REDIRECT_URI
   );
 }
 
 export const GOOGLE_SCOPES = [
+  // Search Console
   "https://www.googleapis.com/auth/webmasters.readonly",
+  // Google Analytics 4
   "https://www.googleapis.com/auth/analytics.readonly",
+  // User info
   "https://www.googleapis.com/auth/userinfo.email",
   "https://www.googleapis.com/auth/userinfo.profile",
 ];
