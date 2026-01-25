@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGSCData } from "@/hooks/useGSCData";
-
+import { GASection } from "@/components/dashboard/ga-section";
 // Demo data for users without Google connected
 const demoMetrics = {
   clicks: 12453,
@@ -32,20 +32,20 @@ const demoMetrics = {
 };
 
 const demoTraffic = [
-  { date: "2024-01-01", clicks: 400, impressions: 12000 },
-  { date: "2024-01-02", clicks: 430, impressions: 13500 },
-  { date: "2024-01-03", clicks: 448, impressions: 14200 },
-  { date: "2024-01-04", clicks: 470, impressions: 15100 },
-  { date: "2024-01-05", clicks: 540, impressions: 16800 },
-  { date: "2024-01-06", clicks: 580, impressions: 17500 },
-  { date: "2024-01-07", clicks: 620, impressions: 18900 },
-  { date: "2024-01-08", clicks: 590, impressions: 18200 },
-  { date: "2024-01-09", clicks: 610, impressions: 19100 },
-  { date: "2024-01-10", clicks: 680, impressions: 21000 },
-  { date: "2024-01-11", clicks: 720, impressions: 22500 },
-  { date: "2024-01-12", clicks: 750, impressions: 23800 },
-  { date: "2024-01-13", clicks: 790, impressions: 25100 },
-  { date: "2024-01-14", clicks: 820, impressions: 26500 },
+  { date: "2026-01-01", clicks: 400, impressions: 12000 },
+  { date: "2026-01-02", clicks: 430, impressions: 13500 },
+  { date: "2026-01-03", clicks: 448, impressions: 14200 },
+  { date: "2026-01-04", clicks: 470, impressions: 15100 },
+  { date: "2026-01-05", clicks: 540, impressions: 16800 },
+  { date: "2026-01-06", clicks: 580, impressions: 17500 },
+  { date: "2026-01-07", clicks: 620, impressions: 18900 },
+  { date: "2026-01-08", clicks: 590, impressions: 18200 },
+  { date: "2026-01-09", clicks: 610, impressions: 19100 },
+  { date: "2026-01-10", clicks: 680, impressions: 21000 },
+  { date: "2026-01-11", clicks: 720, impressions: 22500 },
+  { date: "2026-01-12", clicks: 750, impressions: 23800 },
+  { date: "2026-01-13", clicks: 790, impressions: 25100 },
+  { date: "2026-01-14", clicks: 820, impressions: 26500 },
 ];
 
 const demoKeywords = [
@@ -327,6 +327,11 @@ export function DashboardContent({
               />
             </div>
           </div>
+
+          {/* Google Analytics Section */}
+          {isConnected && (
+            <GASection />
+          )}
 
           {/* Keywords Table */}
           <KeywordsTable 
