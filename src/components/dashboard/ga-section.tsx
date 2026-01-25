@@ -18,7 +18,12 @@ import {
   Loader2, 
   AlertCircle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ExternalLink,
+  Users,
+  Eye,
+  Clock,
+  MousePointerClick
 } from "lucide-react";
 
 export function GASection() {
@@ -33,11 +38,6 @@ export function GASection() {
   } = useGAData();
 
   const [isExpanded, setIsExpanded] = useState(true);
-
-  // If no properties available, don't show the section
-  if (properties.length === 0 && !loading && !error) {
-    return null;
-  }
 
   return (
     <Card className="border-orange-200 bg-gradient-to-r from-orange-50/50 to-yellow-50/50">
@@ -128,7 +128,90 @@ export function GASection() {
             />
           )}
 
-          {/* No Data State */}
+          {/* No Properties - Setup Required */}
+          {!loading && !error && properties.length === 0 && (
+            <div className="space-y-4">
+              {/* Placeholder metrics */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-4 rounded-xl border bg-blue-50/50 text-blue-400 border-blue-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-blue-100/50">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium">Users</p>
+                      <p className="text-xl font-bold">--</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border bg-green-50/50 text-green-400 border-green-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-green-100/50">
+                      <MousePointerClick className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium">Sessions</p>
+                      <p className="text-xl font-bold">--</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border bg-purple-50/50 text-purple-400 border-purple-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-purple-100/50">
+                      <Eye className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium">Page Views</p>
+                      <p className="text-xl font-bold">--</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border bg-orange-50/50 text-orange-400 border-orange-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-orange-100/50">
+                      <Clock className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium">Avg. Duration</p>
+                      <p className="text-xl font-bold">--</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Setup Instructions */}
+              <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-medium text-orange-800">Set Up Google Analytics</p>
+                    <p className="text-sm text-orange-600 mt-1">
+                      To see your website traffic data here, you need to:
+                    </p>
+                    <ol className="text-sm text-orange-600 mt-2 space-y-1 list-decimal list-inside">
+                      <li>Create a GA4 property in Google Analytics</li>
+                      <li>Add the tracking code to your website</li>
+                      <li>Use the same Google account you use for SEOPulse</li>
+                    </ol>
+                    <a
+                      href="https://analytics.google.com/analytics/web/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-orange-700 hover:text-orange-800"
+                    >
+                      Go to Google Analytics
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Has Properties but No Data Selected */}
           {!data && !loading && !error && properties.length > 0 && (
             <div className="text-center py-8 text-gray-500">
               <BarChart3 className="w-8 h-8 mx-auto mb-2 text-gray-300" />
