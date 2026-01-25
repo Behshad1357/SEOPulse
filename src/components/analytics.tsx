@@ -2,7 +2,18 @@
 
 import Script from "next/script";
 
-export function GoogleAnalytics({ measurementId }: { measurementId: string }) {
+interface GoogleAnalyticsProps {
+  measurementId?: string;
+}
+
+export function GoogleAnalytics({ 
+  measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "G-W0SN7RG08N" 
+}: GoogleAnalyticsProps) {
+  // Don't render in development (optional - remove if you want to test locally)
+  if (process.env.NODE_ENV !== "production") {
+    return null;
+  }
+
   return (
     <>
       <Script
@@ -14,7 +25,9 @@ export function GoogleAnalytics({ measurementId }: { measurementId: string }) {
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', '${measurementId}');
+          gtag('config', '${measurementId}', {
+            page_path: window.location.pathname,
+          });
         `}
       </Script>
     </>
