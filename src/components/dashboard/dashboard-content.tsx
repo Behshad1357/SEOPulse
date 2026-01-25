@@ -327,17 +327,14 @@ export function DashboardContent({
               />
             </div>
           </div>
-
-          {/* Google Analytics Section */}
-          {isConnected && (
-            <GASection />
-          )}
-
           {/* Keywords Table */}
           <KeywordsTable 
             keywords={keywords} 
             isRealData={showRealData}
           />
+
+          {/* Google Analytics Section */}
+          <GASection />
         </>
       )}
     </div>
