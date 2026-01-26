@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { X, Sparkles, ArrowRight, CheckCircle, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { trackNewsletterSignup, trackCTAClick } from "@/lib/analytics";
 
 export function ExitIntentPopup() {
   const [isVisible, setIsVisible] = useState(false);
@@ -21,7 +22,7 @@ export function ExitIntentPopup() {
     // Check if already shown in this session or dismissed before
     const hasSeenPopup = sessionStorage.getItem("exitPopupShown");
     const hasDismissed = localStorage.getItem("exitPopupDismissed");
-    
+
     if (hasSeenPopup || hasDismissed) {
       return;
     }
@@ -62,7 +63,7 @@ export function ExitIntentPopup() {
     if (!email) return;
 
     setIsSubmitting(true);
-    
+
     try {
       const response = await fetch("/api/newsletter", {
         method: "POST",
@@ -73,6 +74,10 @@ export function ExitIntentPopup() {
       if (response.ok) {
         setIsSubmitted(true);
         localStorage.setItem("exitPopupDismissed", "true");
+        
+        // Track the newsletter signup conversion
+        trackNewsletterSignup("exit_popup");
+        
         setTimeout(() => setIsVisible(false), 3000);
       }
     } catch (error) {
@@ -82,12 +87,18 @@ export function ExitIntentPopup() {
     }
   };
 
+  const handleCreateAccountClick = () => {
+    // Track CTA click
+    trackCTAClick("create_free_account", "exit_popup", "/signup");
+    handleClose();
+  };
+
   if (!isVisible) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
         onClick={handleClose}
       />
@@ -113,9 +124,7 @@ export function ExitIntentPopup() {
               Free SEO Resource
             </span>
           </div>
-          <h2 className="text-2xl font-bold">
-            Before You Go...
-          </h2>
+          <h2 className="text-2xl font-bold">Before You Go...</h2>
           <p className="text-blue-100 mt-1">
             Get our free SEO checklist used by 500+ websites
           </p>
@@ -160,8 +169,8 @@ export function ExitIntentPopup() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                   required
                 />
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 rounded-lg font-medium"
                   disabled={isSubmitting}
                 >
@@ -178,10 +187,10 @@ export function ExitIntentPopup() {
 
               {/* Alternative Actions */}
               <div className="mt-4 flex items-center justify-between text-sm">
-                <Link 
-                  href="/signup" 
+                <Link
+                  href="/signup"
                   className="text-blue-600 hover:text-blue-700 font-medium"
-                  onClick={handleClose}
+                  onClick={handleCreateAccountClick}
                 >
                   Or create a free account →
                 </Link>

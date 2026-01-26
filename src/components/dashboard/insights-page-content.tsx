@@ -22,6 +22,8 @@ import { useGSCData } from "@/hooks/useGSCData";
 import { SEOHealthScore } from "@/components/dashboard/seo-health-score";
 import { KeywordOpportunities } from "@/components/dashboard/keyword-opportunities";
 import { SEOChecklist } from "@/components/dashboard/seo-checklist";
+import { trackAIInsightsGenerated } from "@/lib/analytics";
+
 interface Insight {
   id: string;
   website_id: string;
@@ -90,10 +92,8 @@ const getLowTrafficInsights = (
     .replace(/https?:\/\//, "")
     .replace(/\/$/, "");
 
-  // Calculate CTR if possible
   const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
 
-  // Insight 1: CTR Analysis
   if (impressions > 0 && ctr < 2) {
     insights.push({
       id: `insight-ctr-${Date.now()}`,
@@ -109,12 +109,10 @@ const getLowTrafficInsights = (
         "Use numbers, questions, or power words to stand out in search results",
         "Add structured data (Schema markup) to get rich snippets",
       ],
-      learn_more_url:
-        "https://developers.google.com/search/docs/appearance/title-link",
+      learn_more_url: "https://developers.google.com/search/docs/appearance/title-link",
     });
   }
 
-  // Insight 2: Impressions but no clicks
   if (impressions > 50 && clicks < 5) {
     insights.push({
       id: `insight-visibility-${Date.now()}`,
@@ -130,12 +128,10 @@ const getLowTrafficInsights = (
         "Review competitors' titles and descriptions for the same keywords",
         "Consider if the keywords are too competitive (ranking on page 2+)",
       ],
-      learn_more_url:
-        "https://search.google.com/search-console",
+      learn_more_url: "https://search.google.com/search-console",
     });
   }
 
-  // Insight 3: New site guidance
   if (clicks < 10) {
     insights.push({
       id: `insight-newsite-${Date.now()}`,
@@ -152,12 +148,10 @@ const getLowTrafficInsights = (
         "Get backlinks from relevant, authoritative sites in your niche",
         "Publish consistently (aim for 2-4 quality articles per month)",
       ],
-      learn_more_url:
-        "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
+      learn_more_url: "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
     });
   }
 
-  // Insight 4: Technical SEO basics
   insights.push({
     id: `insight-technical-${Date.now()}`,
     website_id: siteUrl,
@@ -177,7 +171,6 @@ const getLowTrafficInsights = (
     learn_more_url: "https://pagespeed.web.dev/",
   });
 
-  // Insight 5: Content optimization
   insights.push({
     id: `insight-content-${Date.now()}`,
     website_id: siteUrl,
@@ -194,11 +187,9 @@ const getLowTrafficInsights = (
       "Update content regularly to keep it fresh",
       "Aim for comprehensive content (typically 1,500-2,500 words for competitive topics)",
     ],
-    learn_more_url:
-      "https://developers.google.com/search/docs/fundamentals/seo-starter-guide",
+    learn_more_url: "https://developers.google.com/search/docs/fundamentals/seo-starter-guide",
   });
 
-  // Insight 6: Quick wins
   insights.push({
     id: `insight-quickwins-${Date.now()}`,
     website_id: siteUrl,
@@ -236,11 +227,8 @@ export function InsightsPageContent({
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastGenerated, setLastGenerated] = useState<Date | null>(null);
-  const [expandedInsights, setExpandedInsights] = useState<Set<string>>(
-    new Set()
-  );
+  const [expandedInsights, setExpandedInsights] = useState<Set<string>>(new Set());
 
-  // Toggle expanded state for an insight
   const toggleExpanded = (id: string) => {
     setExpandedInsights((prev) => {
       const newSet = new Set(prev);
@@ -253,7 +241,6 @@ export function InsightsPageContent({
     });
   };
 
-  // Fetch AI insights when data is available
   useEffect(() => {
     if (data && isConnected && selectedSite) {
       generateInsights();
@@ -266,7 +253,6 @@ export function InsightsPageContent({
 
     setLoading(true);
     try {
-      // For low-traffic sites, use our detailed local insights
       if (data.totals.clicks < 50 || data.totals.impressions < 500) {
         const localInsights = getLowTrafficInsights(
           selectedSite || "",
@@ -275,11 +261,14 @@ export function InsightsPageContent({
         );
         setInsights(localInsights);
         setLastGenerated(new Date());
+        
+        // Track AI insights generated
+        trackAIInsightsGenerated(selectedSite || "", localInsights.length);
+        
         setLoading(false);
         return;
       }
 
-      // For sites with more data, call the AI API
       const response = await fetch("/api/ai/insights", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -297,11 +286,13 @@ export function InsightsPageContent({
         if (result.insights && result.insights.length > 0) {
           setInsights(result.insights);
           setLastGenerated(new Date());
+          
+          // Track AI insights generated
+          trackAIInsightsGenerated(selectedSite || "", result.insights.length);
         }
       }
     } catch (error) {
       console.error("Error generating insights:", error);
-      // Use local insights as fallback
       const localInsights = getLowTrafficInsights(
         selectedSite || "",
         data.totals.clicks,
@@ -314,7 +305,6 @@ export function InsightsPageContent({
     }
   };
 
-  // Not connected state
   if (!isGoogleConnected) {
     return (
       <div className="space-y-6">
@@ -324,7 +314,6 @@ export function InsightsPageContent({
             AI-powered recommendations to improve your SEO
           </p>
         </div>
-
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <div className="p-3 bg-blue-100 rounded-full mb-4">
@@ -344,7 +333,6 @@ export function InsightsPageContent({
     );
   }
 
-  // Loading state
   if (gscLoading) {
     return (
       <div className="space-y-6">
@@ -354,7 +342,6 @@ export function InsightsPageContent({
             AI-powered recommendations to improve your SEO
           </p>
         </div>
-
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
           <span className="ml-3 text-gray-600">Loading your data...</span>
@@ -373,7 +360,6 @@ export function InsightsPageContent({
             AI-powered recommendations to improve your SEO
           </p>
         </div>
-
         <div className="flex items-center gap-3">
           {sites.length > 0 && (
             <SiteSelector
@@ -388,9 +374,7 @@ export function InsightsPageContent({
             onClick={generateInsights}
             disabled={loading || !data}
           >
-            <RefreshCw
-              className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
-            />
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
             Regenerate
           </Button>
         </div>
@@ -412,9 +396,7 @@ export function InsightsPageContent({
               <div>
                 <span className="text-gray-500">Analyzing:</span>
                 <span className="ml-2 font-medium text-gray-900">
-                  {selectedSite
-                    ?.replace("sc-domain:", "")
-                    .replace(/https?:\/\//, "")}
+                  {selectedSite?.replace("sc-domain:", "").replace(/https?:\/\//, "")}
                 </span>
               </div>
               <div>
@@ -439,35 +421,31 @@ export function InsightsPageContent({
           </CardContent>
         </Card>
       )}
-      {/* Add after the Data Summary Card */}
 
-        {/* SEO Health Score */}
-        {data && (
+      {/* SEO Health Score */}
+      {data && (
         <SEOHealthScore
-            clicks={data.totals.clicks}
-            impressions={data.totals.impressions}
-            ctr={data.totals.ctr}
-            position={data.totals.position}
+          clicks={data.totals.clicks}
+          impressions={data.totals.impressions}
+          ctr={data.totals.ctr}
+          position={data.totals.position}
         />
-        )}
+      )}
 
-        {/* Keyword Opportunities */}
-        {data && data.queries && data.queries.length > 0 && (
+      {/* Keyword Opportunities */}
+      {data && data.queries && data.queries.length > 0 && (
         <KeywordOpportunities keywords={data.queries} />
-        )}
+      )}
 
-        {/* SEO Checklist */}
-        {selectedSite && (
-        <SEOChecklist siteUrl={selectedSite} />
-        )}
+      {/* SEO Checklist */}
+      {selectedSite && <SEOChecklist siteUrl={selectedSite} />}
+
       {/* Loading Insights */}
       {loading && (
         <Card>
           <CardContent className="flex items-center justify-center py-12">
             <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
-            <span className="ml-3 text-gray-600">
-              Analyzing your data...
-            </span>
+            <span className="ml-3 text-gray-600">Analyzing your data...</span>
           </CardContent>
         </Card>
       )}
@@ -489,30 +467,21 @@ export function InsightsPageContent({
               >
                 <CardContent className="py-4">
                   <div className="flex items-start gap-4">
-                    <div className={`p-2 rounded-lg bg-white shadow-sm`}>
+                    <div className="p-2 rounded-lg bg-white shadow-sm">
                       <IconComponent className={`w-5 h-5 ${typeInfo.color}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded-full ${typeInfo.bgColor} ${typeInfo.color} border ${typeInfo.borderColor}`}
-                        >
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${typeInfo.bgColor} ${typeInfo.color} border ${typeInfo.borderColor}`}>
                           {typeInfo.label}
                         </span>
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded-full border ${priorityInfo.color}`}
-                        >
+                        <span className={`text-xs px-2 py-0.5 rounded-full border ${priorityInfo.color}`}>
                           {priorityInfo.label}
                         </span>
                       </div>
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        {insight.title}
-                      </h3>
-                      <p className="text-sm text-gray-700">
-                        {insight.description}
-                      </p>
+                      <h3 className="font-semibold text-gray-900 mb-1">{insight.title}</h3>
+                      <p className="text-sm text-gray-700">{insight.description}</p>
 
-                      {/* Expanded Content */}
                       {isExpanded && insight.action_steps && (
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
@@ -521,10 +490,7 @@ export function InsightsPageContent({
                           </h4>
                           <ul className="space-y-2">
                             {insight.action_steps.map((step, index) => (
-                              <li
-                                key={index}
-                                className="flex items-start gap-2 text-sm text-gray-700"
-                              >
+                              <li key={index} className="flex items-start gap-2 text-sm text-gray-700">
                                 <span className="flex-shrink-0 w-5 h-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
                                   {index + 1}
                                 </span>
@@ -532,7 +498,6 @@ export function InsightsPageContent({
                               </li>
                             ))}
                           </ul>
-
                           {insight.learn_more_url && (
                             <a
                               href={insight.learn_more_url}
@@ -548,8 +513,6 @@ export function InsightsPageContent({
                         </div>
                       )}
                     </div>
-
-                    {/* Expand/Collapse Icon */}
                     <div className="flex-shrink-0">
                       {isExpanded ? (
                         <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -572,9 +535,7 @@ export function InsightsPageContent({
             <div className="p-3 bg-gray-100 rounded-full mb-4">
               <Sparkles className="w-8 h-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-1">
-              Generating Insights...
-            </h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">Generating Insights...</h3>
             <p className="text-gray-500 text-center max-w-sm mb-4">
               Click the button below to generate AI insights based on your data.
             </p>

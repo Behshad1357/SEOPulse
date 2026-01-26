@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Check, Shield, Zap, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { trackViewPricing, trackCTAClick, trackBeginCheckout, trackViewPlan } from "@/lib/analytics";
 
 const plans = [
   {
@@ -79,11 +80,22 @@ export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleSubscribe = async (planId: string) => {
+  // Track pricing page view on mount
+  useEffect(() => {
+    trackViewPricing();
+  }, []);
+
+  const handleSubscribe = async (planId: string, planName: string, planPrice: number) => {
+    // Track CTA click
+    trackCTAClick(`subscribe_${planId}`, "pricing_page", planId === "free" ? "/signup" : "/checkout");
+    
     if (planId === "free") {
       router.push("/signup");
       return;
     }
+
+    // Track begin checkout
+    trackBeginCheckout(planName, planPrice);
 
     setLoading(planId);
 
@@ -111,6 +123,10 @@ export default function PricingPage() {
     } finally {
       setLoading(null);
     }
+  };
+
+  const handlePlanHover = (planName: string, planPrice: number) => {
+    trackViewPlan(planName, planPrice);
   };
 
   return (
@@ -168,6 +184,7 @@ export default function PricingPage() {
                 className={`relative flex flex-col ${
                   plan.popular ? "border-blue-500 border-2 shadow-xl scale-105" : "border-gray-200"
                 }`}
+                onMouseEnter={() => handlePlanHover(plan.name, plan.price)}
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
@@ -196,7 +213,7 @@ export default function PricingPage() {
                 </CardContent>
                 <CardFooter className="pt-4 flex flex-col gap-3">
                   <button
-                    onClick={() => handleSubscribe(plan.id)}
+                    onClick={() => handleSubscribe(plan.id, plan.name, plan.price)}
                     disabled={loading === plan.id}
                     className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 ${
                       plan.popular
@@ -245,7 +262,11 @@ export default function PricingPage() {
           {/* Final CTA */}
           <div className="text-center mt-16">
             <p className="text-gray-600 mb-4">Still have questions?</p>
-            <Link href="/contact" className="text-blue-600 hover:underline font-medium">
+            <Link 
+              href="/contact" 
+              className="text-blue-600 hover:underline font-medium"
+              onClick={() => trackCTAClick("contact_us", "pricing_page", "/contact")}
+            >
               Contact us →
             </Link>
           </div>
