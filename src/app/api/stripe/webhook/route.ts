@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { stripe } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import Stripe from "stripe";
-
+import { trackPlanUpgrade } from "@/lib/analytics";
 export async function POST(request: Request) {
   const body = await request.text();
   const headersList = await headers();
