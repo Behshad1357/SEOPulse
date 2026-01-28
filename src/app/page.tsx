@@ -50,24 +50,40 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* Hero Section - OPTIMIZED */}
-      <section className="py-20 px-4">
+      {/* Hero Section - PREMIUM + HIGH-IMPACT CTA */}
+      <section className="py-24 px-4">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="inline-flex items-center px-4 py-2 bg-green-50 border border-green-200 rounded-full text-green-700 text-sm font-medium mb-6">
+
+          {/* Traffic Badge */}
+          <div className="inline-flex items-center px-4 py-2 bg-green-50 border border-green-200 rounded-full text-green-700 text-sm font-medium mb-8">
             <TrendingUp className="w-4 h-4 mr-2" />
             Users report 25% avg traffic increase in 60 days
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+
+          {/* Headline */}
+          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 leading-tight mb-6">
             Turn Messy GSC Data Into<br />
             <span className="text-blue-600">AI Action Items That Grow Traffic</span>
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-            Connect Google Search Console in 30 seconds. Get instant AI insights on which pages to fix, 
+
+          {/* Subheadline */}
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-4">
+            Connect Google Search Console in 30 seconds. Get instant AI insights on which pages to fix,
             what keywords to target, and exactly how to grow your organic traffic.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+
+          {/* Supporting Line */}
+          <p className="text-lg text-gray-600 max-w-xl mx-auto mt-2 mb-8">
+            For anyone who wants to turn Google Search Console data into actionable growth strategies.
+          </p>
+
+          {/* CTA */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
             <Link href="/signup">
-              <Button size="lg" className="text-lg px-8 bg-blue-600 hover:bg-blue-700">
+              <Button
+                size="lg"
+                className="text-lg px-8 bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition"
+              >
                 Connect GSC Free
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
@@ -75,8 +91,8 @@ export default function HomePage() {
             <p className="text-sm text-gray-500">1 site, 7-day history. No card required.</p>
           </div>
 
-          {/* Trust Badges - ENHANCED */}
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500 mb-12">
+          {/* Trust Badges - WITH SHIELD */}
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500 mb-16">
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-green-500" />
               No credit card required
@@ -86,23 +102,28 @@ export default function HomePage() {
               Setup in 30 seconds
             </div>
             <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-green-500" />
+              Secure GSC connection
+            </div>
+            <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-green-500" />
               Free forever plan
             </div>
           </div>
 
-          {/* Testimonial Highlight - NEW */}
-          <div className="max-w-xl mx-auto bg-gray-50 rounded-xl p-6 border border-gray-100">
+          {/* Testimonial */}
+          <div className="max-w-xl mx-auto bg-gray-50 rounded-xl p-8 border border-gray-100 shadow-sm">
             <div className="flex items-center justify-center gap-1 mb-3">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
               ))}
             </div>
             <p className="text-gray-700 italic mb-3">
-              &quot;SEOPulse found 3 pages losing traffic that I completely missed. Fixed them and saw a 40% traffic lift in 6 weeks.&quot;
+              "SEOPulse found 3 pages losing traffic that I completely missed. Fixed them and saw a 40% traffic lift in 6 weeks."
             </p>
             <p className="text-sm text-gray-500">— Sarah Chen, Marketing Manager at TechStart Inc</p>
           </div>
+
         </div>
       </section>
 
