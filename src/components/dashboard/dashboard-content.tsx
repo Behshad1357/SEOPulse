@@ -7,6 +7,7 @@ import { KeywordsTable } from "@/components/dashboard/keywords-table";
 import { InsightsCard } from "@/components/dashboard/insights-card";
 import { SiteSelector } from "@/components/dashboard/site-selector";
 import { ConnectGoogleButton } from "@/components/dashboard/connect-google-button";
+import { PageOpportunities } from "@/components/dashboard/page-opportunities";
 import { 
   MousePointer, 
   Eye, 
@@ -19,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useGSCData } from "@/hooks/useGSCData";
 import { GASection } from "@/components/dashboard/ga-section";
+
 // Demo data for users without Google connected
 const demoMetrics = {
   clicks: 12453,
@@ -91,13 +93,15 @@ interface DashboardContentProps {
   hasWebsites: boolean;
   userPlan: string;
   userId: string;
+  websiteId?: string; // Added websiteId prop
 }
 
 export function DashboardContent({ 
   isGoogleConnected, 
   hasWebsites, 
   userPlan,
-  userId 
+  userId,
+  websiteId // Added websiteId
 }: DashboardContentProps) {
   const { 
     data, 
@@ -112,9 +116,13 @@ export function DashboardContent({
 
   const [insights, setInsights] = useState(demoInsights);
   const [insightsLoading, setInsightsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'opportunities'>('overview');
 
   // Determine what data to show - ensure it's always a boolean
   const showRealData: boolean = !!(isConnected && data && !error);
+
+  // Get the current website ID from the selected site or use the passed websiteId
+  const currentWebsiteId = websiteId;
 
   // Fetch AI insights when data is loaded
   useEffect(() => {
@@ -277,6 +285,35 @@ export function DashboardContent({
       {/* Dashboard Content */}
       {!loading && (
         <>
+          {/* Tab Navigation */}
+          {showRealData && (
+            <div className="flex border-b border-gray-200">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'overview'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Overview
+              </button>
+              <button
+                onClick={() => setActiveTab('opportunities')}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+                  activeTab === 'opportunities'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Page Opportunities
+                <span className="px-1.5 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">
+                  New
+                </span>
+              </button>
+            </div>
+          )}
+
           {/* Date Range Indicator */}
           {showRealData && data?.dateRange && (
             <p className="text-sm text-gray-500">
@@ -284,57 +321,84 @@ export function DashboardContent({
             </p>
           )}
 
-          {/* Metrics Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <MetricCard
-              title="Total Clicks"
-              value={metrics.clicks}
-              change={metrics.clicks_change}
-              icon={<MousePointer className="w-5 h-5" />}
-            />
-            <MetricCard
-              title="Impressions"
-              value={metrics.impressions}
-              change={metrics.impressions_change}
-              icon={<Eye className="w-5 h-5" />}
-            />
-            <MetricCard
-              title="Avg. CTR"
-              value={metrics.ctr}
-              change={metrics.ctr_change}
-              format="percentage"
-              icon={<Percent className="w-5 h-5" />}
-            />
-            <MetricCard
-              title="Avg. Position"
-              value={metrics.position}
-              change={metrics.position_change}
-              format="position"
-              icon={<Hash className="w-5 h-5" />}
-            />
-          </div>
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <>
+              {/* Metrics Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <MetricCard
+                  title="Total Clicks"
+                  value={metrics.clicks}
+                  change={metrics.clicks_change}
+                  icon={<MousePointer className="w-5 h-5" />}
+                />
+                <MetricCard
+                  title="Impressions"
+                  value={metrics.impressions}
+                  change={metrics.impressions_change}
+                  icon={<Eye className="w-5 h-5" />}
+                />
+                <MetricCard
+                  title="Avg. CTR"
+                  value={metrics.ctr}
+                  change={metrics.ctr_change}
+                  format="percentage"
+                  icon={<Percent className="w-5 h-5" />}
+                />
+                <MetricCard
+                  title="Avg. Position"
+                  value={metrics.position}
+                  change={metrics.position_change}
+                  format="position"
+                  icon={<Hash className="w-5 h-5" />}
+                />
+              </div>
 
-          {/* Charts and Insights */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <TrafficChart data={trafficData} />
-            </div>
-            <div>
-              <InsightsCard 
-                insights={insights} 
-                loading={insightsLoading}
+              {/* Charts and Insights */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <TrafficChart data={trafficData} />
+                </div>
+                <div>
+                  <InsightsCard 
+                    insights={insights} 
+                    loading={insightsLoading}
+                    isRealData={showRealData}
+                  />
+                </div>
+              </div>
+
+              {/* Keywords Table */}
+              <KeywordsTable 
+                keywords={keywords} 
                 isRealData={showRealData}
               />
-            </div>
-          </div>
-          {/* Keywords Table */}
-          <KeywordsTable 
-            keywords={keywords} 
-            isRealData={showRealData}
-          />
 
-          {/* Google Analytics Section */}
-          <GASection />
+              {/* Google Analytics Section */}
+              <GASection />
+            </>
+          )}
+
+          {/* Page Opportunities Tab */}
+          {activeTab === 'opportunities' && showRealData && (
+            <PageOpportunities websiteId={currentWebsiteId} />
+          )}
+
+          {/* Show Page Opportunities hint in demo mode */}
+          {activeTab === 'opportunities' && !showRealData && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-8 text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MousePointer className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Page Priority Scores
+              </h3>
+              <p className="text-gray-600 mb-4 max-w-md mx-auto">
+                Connect Google Search Console to get AI-powered page-by-page SEO scores with specific fix recommendations.
+              </p>
+              <ConnectGoogleButton />
+            </div>
+          )}
         </>
       )}
     </div>

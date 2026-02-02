@@ -10,12 +10,14 @@ import {
   TrendingUp,
   FileText,
   HelpCircle,
+  Target, // Added for Opportunities
 } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/websites", label: "Websites", icon: Globe },
-  { href: "/dashboard/insights", label: "AI Insights", icon: Sparkles },
+  { href: "/dashboard/insights", label: "AI Insights", icon: Sparkles, badge: "AI" },
+  { href: "/dashboard/opportunities", label: "Page Scores", icon: Target, badge: "New" }, // Added
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
@@ -54,9 +56,15 @@ export function DashboardSidebar() {
                 >
                   <Icon className={`mr-3 h-5 w-5 ${isActive ? "text-white" : "text-gray-400 group-hover:text-gray-600"}`} />
                   {item.label}
-                  {item.label === "AI Insights" && (
-                    <span className={`ml-auto text-xs px-1.5 py-0.5 rounded ${isActive ? "bg-white/20 text-white" : "bg-purple-100 text-purple-600"}`}>
-                      AI
+                  {item.badge && (
+                    <span className={`ml-auto text-xs px-1.5 py-0.5 rounded ${
+                      isActive 
+                        ? "bg-white/20 text-white" 
+                        : item.badge === "New" 
+                          ? "bg-green-100 text-green-600"
+                          : "bg-purple-100 text-purple-600"
+                    }`}>
+                      {item.badge}
                     </span>
                   )}
                 </Link>

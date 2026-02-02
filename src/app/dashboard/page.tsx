@@ -19,15 +19,17 @@ export default async function DashboardPage() {
     .eq("user_id", user?.id);
 
   const isGoogleConnected = !!profile?.google_refresh_token;
-  const hasWebsites = !!(websites && websites.length > 0); // Ensure boolean, not null
+  const hasWebsites = !!(websites && websites.length > 0);
   const userPlan = profile?.plan || "free";
-
+  const firstWebsiteId = websites?.[0]?.id;
+  
   return (
     <DashboardContent 
       isGoogleConnected={isGoogleConnected}
       hasWebsites={hasWebsites}
       userPlan={userPlan}
       userId={user?.id || ""}
+      websiteId={firstWebsiteId}
     />
   );
 }
