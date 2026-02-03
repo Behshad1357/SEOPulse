@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Target,
@@ -10,15 +10,42 @@ import {
   Loader2,
   AlertTriangle,
   Zap,
-  TrendingUp,
   Lock,
   ChevronRight
 } from "lucide-react";
 import { useGSCData } from "@/hooks/useGSCData";
-import { usePageScores } from "@/hooks/usePageScores";
 import { PageScoreCard } from "./page-score-card";
 import { SiteSelector } from "./site-selector";
 import Link from "next/link";
+
+interface PageScore {
+  id: string;
+  website_id: string;
+  user_id: string;
+  page_url: string;
+  score: number;
+  issues: any[];
+  opportunities: any[];
+  metrics: {
+    clicks: number;
+    impressions: number;
+    ctr: number;
+    position: number;
+    expectedCtr: number;
+    ctrGap: number;
+  };
+  last_analyzed: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface PageScoreSummary {
+  totalPages: number;
+  avgScore: number;
+  criticalIssues: number;
+  quickWins: number;
+  potentialClicks: number;
+}
 
 interface PageOpportunitiesProps {
   websiteId?: string;
@@ -34,30 +61,125 @@ export function PageOpportunities({ websiteId }: PageOpportunitiesProps) {
     setSelectedSite 
   } = useGSCData();
 
-  const {
-    pages,
-    summary,
-    loading,
-    analyzing,
-    error,
-    plan,
-    analyzePages,
-    fetchPageScores
-  } = usePageScores();
+  const [pages, setPages] = useState<PageScore[]>([]);
+  const [summary, setSummary] = useState<PageScoreSummary | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [plan, setPlan] = useState<string>('free');
+  const [pagesData, setPagesData] = useState<any[]>([]);
 
-  const [hasAnalyzed, setHasAnalyzed] = useState(false);
+  // Fetch pages data from GSC when site changes
+  useEffect(() => {
+    if (isConnected && selectedSite) {
+      fetchPagesFromGSC();
+    }
+  }, [isConnected, selectedSite]);
 
   // Fetch existing scores on mount
   useEffect(() => {
     if (websiteId) {
       fetchPageScores(websiteId);
     }
-  }, [websiteId, fetchPageScores]);
+  }, [websiteId]);
+
+  const fetchPagesFromGSC = async () => {
+    if (!selectedSite) return;
+    
+    setLoading(true);
+    try {
+      const encodedUrl = encodeURIComponent(selectedSite);
+      const response = await fetch(`/api/google/search-console/pages?siteUrl=${encodedUrl}`);
+      
+      if (response.ok) {
+        const result = await response.json();
+        setPagesData(result.pages || []);
+      } else {
+        // Fallback: try to get pages from the main GSC data
+        if (data?.pages && data.pages.length > 0) {
+          setPagesData(data.pages);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching pages:', err);
+      // Fallback to data.pages if available
+      if (data?.pages && data.pages.length > 0) {
+        setPagesData(data.pages);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPageScores = async (webId: string) => {
+    try {
+      const response = await fetch(`/api/analyze-pages?websiteId=${webId}`);
+      const result = await response.json();
+
+      if (response.ok && result.pages) {
+        setPages(result.pages);
+        calculateSummary(result.pages);
+      }
+    } catch (err) {
+      console.error('Error fetching page scores:', err);
+    }
+  };
+
+  const calculateSummary = (pageScores: PageScore[]) => {
+    if (pageScores.length === 0) return;
+    
+    setSummary({
+      totalPages: pageScores.length,
+      avgScore: Math.round(
+        pageScores.reduce((acc, p) => acc + p.score, 0) / pageScores.length
+      ),
+      criticalIssues: pageScores.reduce((acc, p) => 
+        acc + p.issues.filter((i: any) => i.type === 'critical').length, 0),
+      quickWins: pageScores.reduce((acc, p) => 
+        acc + p.opportunities.filter((o: any) => o.type === 'quick_win').length, 0),
+      potentialClicks: pageScores.reduce((acc, p) => 
+        acc + p.opportunities.reduce((sum: number, o: any) => sum + (o.potentialClicks || 0), 0), 0)
+    });
+  };
 
   const handleAnalyze = async () => {
-    if (!data?.pages || !websiteId || !selectedSite) return;
-    await analyzePages(data.pages, websiteId, selectedSite);
-    setHasAnalyzed(true);
+    // Use pagesData if available, otherwise fall back to data.pages
+    const pagesToUse = pagesData.length > 0 ? pagesData : data?.pages;
+    
+    if (!pagesToUse || pagesToUse.length === 0 || !websiteId || !selectedSite) {
+      setError('No pages data available. Make sure your site has impressions in Google Search Console.');
+      return;
+    }
+
+    setAnalyzing(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/analyze-pages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          pages: pagesToUse, 
+          websiteId, 
+          siteUrl: selectedSite 
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to analyze pages');
+      }
+
+      setPages(result.pages || []);
+      setSummary(result.summary || null);
+      setPlan(result.plan || 'free');
+    } catch (err) {
+      console.error('Error analyzing pages:', err);
+      setError(err instanceof Error ? err.message : 'Failed to analyze pages');
+    } finally {
+      setAnalyzing(false);
+    }
   };
 
   // Loading state
@@ -91,26 +213,10 @@ export function PageOpportunities({ websiteId }: PageOpportunitiesProps) {
     );
   }
 
-  // No data state
-  if (!data?.pages || data.pages.length === 0) {
-    return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <div className="p-3 bg-gray-100 rounded-full mb-4">
-            <Target className="w-8 h-8 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-1">
-            No Pages Found
-          </h3>
-          <p className="text-gray-500 text-center max-w-sm">
-            We couldn't find any pages with data in Google Search Console. This usually means your site is new or hasn't received any impressions yet.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const showUpgradeMessage = plan === 'free' && data.pages.length > 5;
+  // Determine available pages
+  const availablePages = pagesData.length > 0 ? pagesData : (data?.pages || []);
+  const hasPages = availablePages.length > 0;
+  const showUpgradeMessage = plan === 'free' && availablePages.length > 5;
 
   return (
     <div className="space-y-6">
@@ -135,7 +241,7 @@ export function PageOpportunities({ websiteId }: PageOpportunitiesProps) {
           )}
           <Button
             onClick={handleAnalyze}
-            disabled={analyzing || !data?.pages}
+            disabled={analyzing || !hasPages}
             variant={pages.length > 0 ? "outline" : "default"}
           >
             {analyzing ? (
@@ -152,6 +258,13 @@ export function PageOpportunities({ websiteId }: PageOpportunitiesProps) {
           </Button>
         </div>
       </div>
+
+      {/* Debug Info - Remove after testing */}
+      <Card className="bg-gray-50 border-gray-200">
+        <CardContent className="p-4 text-sm">
+          <p><strong>Debug:</strong> Available pages: {availablePages.length} | Website ID: {websiteId || 'none'} | Selected Site: {selectedSite || 'none'}</p>
+        </CardContent>
+      </Card>
 
       {/* Summary Cards */}
       {summary && (
@@ -222,7 +335,7 @@ export function PageOpportunities({ websiteId }: PageOpportunitiesProps) {
                 <Lock className="w-5 h-5 text-blue-600" />
                 <div>
                   <p className="font-medium text-gray-900">
-                    Analyzing {Math.min(5, data.pages.length)} of {data.pages.length} pages
+                    Analyzing {Math.min(5, availablePages.length)} of {availablePages.length} pages
                   </p>
                   <p className="text-sm text-gray-600">
                     Upgrade to Pro to analyze all your pages
@@ -251,7 +364,7 @@ export function PageOpportunities({ websiteId }: PageOpportunitiesProps) {
             />
           ))}
         </div>
-      ) : (
+      ) : hasPages ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <div className="p-3 bg-blue-100 rounded-full mb-4">
@@ -261,11 +374,33 @@ export function PageOpportunities({ websiteId }: PageOpportunitiesProps) {
               Ready to Analyze
             </h3>
             <p className="text-gray-500 text-center max-w-sm mb-4">
-              Found {data.pages.length} pages in Google Search Console. Click the button above to generate SEO scores and recommendations.
+              Found {availablePages.length} pages in Google Search Console. Click the button above to generate SEO scores and recommendations.
             </p>
             <Button onClick={handleAnalyze} disabled={analyzing}>
               <Target className="w-4 h-4 mr-2" />
-              Analyze {Math.min(plan === 'free' ? 5 : 50, data.pages.length)} Pages
+              Analyze {Math.min(plan === 'free' ? 5 : 50, availablePages.length)} Pages
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <div className="p-3 bg-gray-100 rounded-full mb-4">
+              <Target className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">
+              No Pages Found
+            </h3>
+            <p className="text-gray-500 text-center max-w-sm">
+              We couldn&apos;t find any pages with data in Google Search Console. This usually means your site is new or hasn&apos;t received any impressions yet.
+            </p>
+            <Button 
+              variant="outline" 
+              className="mt-4"
+              onClick={fetchPagesFromGSC}
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Retry
             </Button>
           </CardContent>
         </Card>
