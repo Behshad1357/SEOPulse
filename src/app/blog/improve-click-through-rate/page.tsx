@@ -3,8 +3,14 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Clock } from "lucide-react";
 
 export const metadata = {
-  title: "10 Proven Ways to Improve Your Click-Through Rate (CTR) | SEOPulse",
-  description: "Discover actionable strategies to get more clicks from search results and boost your organic traffic without changing your rankings.",
+  title: "10 Proven Ways to Boost CTR in Google Search [2026 Guide]",
+  description: "Getting impressions but no clicks? Learn 10 simple CTR hacks you can apply today to win more traffic from the rankings you already have. Free checklist included.",
+  keywords: ["improve CTR", "click through rate", "Google CTR", "SEO CTR optimization", "organic CTR"],
+  openGraph: {
+    title: "10 Proven Ways to Boost CTR in Google Search [2026 Guide]",
+    description: "Getting impressions but no clicks? Learn 10 simple CTR hacks to win more traffic.",
+    type: "article",
+  },
 };
 
 export default function BlogPost() {
@@ -36,7 +42,7 @@ export default function BlogPost() {
         </div>
 
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          10 Proven Ways to Improve Your Click-Through Rate (CTR)
+          10 Proven Ways to Boost CTR in Google Search [2026 Guide]
         </h1>
 
         <div className="flex items-center gap-4 text-gray-500 mb-8">

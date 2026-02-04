@@ -4,8 +4,14 @@ import { ArrowLeft, Calendar, Clock } from "lucide-react";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 
 export const metadata = {
-  title: "What is Google Search Console? A Complete Beginner's Guide",
-  description: "Learn how to use Google Search Console to monitor your website's search performance, fix issues, and improve your SEO.",
+  title: "Google Search Console Guide 2026: Setup & Use GSC [Beginner Tutorial]",
+  description: "Learn how to set up Google Search Console in 5 minutes. Monitor rankings, fix errors & grow organic traffic. Free step-by-step tutorial with screenshots.",
+  keywords: ["Google Search Console", "GSC tutorial", "search console setup", "GSC guide 2026"],
+  openGraph: {
+    title: "Google Search Console Guide 2026: Setup & Use GSC",
+    description: "Learn how to set up Google Search Console in 5 minutes. Free tutorial.",
+    type: "article",
+  },
 };
 
 export default function BlogPost() {
@@ -37,7 +43,7 @@ export default function BlogPost() {
         </div>
 
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          What is Google Search Console? A Complete Beginner&apos;s Guide
+          Google Search Console Guide 2026: Setup & Use GSC for Beginners
         </h1>
 
         <div className="flex items-center gap-4 text-gray-500 mb-8">

@@ -3,8 +3,14 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Clock } from "lucide-react";
 
 export const metadata = {
-  title: "The Complete SEO Guide for Small Businesses | SEOPulse",
-  description: "A step-by-step guide to improving your small business's search visibility without expensive tools or agencies.",
+  title: "Small Business SEO Guide 2026: 7 Steps to Rank #1 Locally [Free]",
+  description: "Google Search Console setup, keywords, local citations & content checklist. Get free traffic without ads. Step-by-step guide for small business owners.",
+  keywords: ["small business SEO", "local SEO guide", "SEO for small business", "local SEO 2026"],
+  openGraph: {
+    title: "Small Business SEO Guide 2026: 7 Steps to Rank #1 Locally",
+    description: "Complete SEO guide for small businesses. Get free traffic without ads.",
+    type: "article",
+  },
 };
 
 export default function BlogPost() {
@@ -36,7 +42,7 @@ export default function BlogPost() {
         </div>
 
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          The Complete SEO Guide for Small Businesses
+          Small Business SEO Guide 2026: 7 Steps to Rank #1 Locally
         </h1>
 
         <div className="flex items-center gap-4 text-gray-500 mb-8">

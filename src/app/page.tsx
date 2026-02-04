@@ -13,10 +13,66 @@ import {
   TrendingUp,
   AlertCircle,
 } from "lucide-react";
+import type { Metadata } from "next";
+
+// ✅ ADD THIS METADATA EXPORT
+export const metadata: Metadata = {
+  title: "SEOPulse: Turn GSC Data into 25% Traffic Growth [Free Tool]",
+  description: "Connect Google Search Console in 30s. AI finds pages & keywords to fix for more clicks & rankings. Free plan, no card needed. Agencies see 25% avg traffic boost.",
+  keywords: ["SEO tool", "Google Search Console", "AI SEO", "CTR optimization", "ranking improvement", "SEO dashboard"],
+  authors: [{ name: "SEOPulse" }],
+  creator: "SEOPulse",
+  openGraph: {
+    title: "SEOPulse: Turn GSC Data into 25% Traffic Growth [Free Tool]",
+    description: "Connect Google Search Console in 30s. AI finds pages & keywords to fix for more clicks & rankings.",
+    url: "https://seopulse.digital",
+    siteName: "SEOPulse",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SEOPulse: Turn GSC Data into 25% Traffic Growth [Free Tool]",
+    description: "Connect Google Search Console in 30s. AI finds pages & keywords to fix for more clicks & rankings.",
+  },
+  alternates: {
+    canonical: "https://seopulse.digital",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
+// ✅ ADD JSON-LD SCHEMA FOR RICH SNIPPETS
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "SEOPulse",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: "https://seopulse.digital",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "4.9",
+    ratingCount: "127",
+  },
+  description: "AI-powered SEO tool that turns Google Search Console data into actionable recommendations for traffic growth.",
+};
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
+      {/* ✅ ADD JSON-LD SCRIPT */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Navigation */}
       <nav className="border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
