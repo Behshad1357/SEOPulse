@@ -143,44 +143,74 @@ export function PageOpportunities({ websiteId }: PageOpportunitiesProps) {
   };
 
   const handleAnalyze = async () => {
-    // Use pagesData if available, otherwise fall back to data.pages
-    const pagesToUse = pagesData.length > 0 ? pagesData : data?.pages;
+  const pagesToUse = pagesData.length > 0 ? pagesData : data?.pages;
+  
+  if (!pagesToUse || pagesToUse.length === 0) {
+    setError('No pages data available. Make sure your site has impressions in Google Search Console.');
+    return;
+  }
+
+  if (!selectedSite) {
+    setError('No site selected.');
+    return;
+  }
+
+  setAnalyzing(true);
+  setError(null);
+
+  try {
+    // First, get or create the website record
+    let currentWebsiteId = websiteId;
     
-    if (!pagesToUse || pagesToUse.length === 0 || !websiteId || !selectedSite) {
-      setError('No pages data available. Make sure your site has impressions in Google Search Console.');
-      return;
-    }
-
-    setAnalyzing(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/analyze-pages', {
+    if (!currentWebsiteId) {
+      // Create website record if it doesn't exist
+      const createResponse = await fetch('/api/websites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          pages: pagesToUse, 
-          websiteId, 
-          siteUrl: selectedSite 
+          siteUrl: selectedSite,
+          name: selectedSite.replace('sc-domain:', '').replace(/https?:\/\//, '')
         })
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to analyze pages');
+      
+      if (createResponse.ok) {
+        const result = await createResponse.json();
+        currentWebsiteId = result.website?.id;
       }
-
-      setPages(result.pages || []);
-      setSummary(result.summary || null);
-      setPlan(result.plan || 'free');
-    } catch (err) {
-      console.error('Error analyzing pages:', err);
-      setError(err instanceof Error ? err.message : 'Failed to analyze pages');
-    } finally {
-      setAnalyzing(false);
     }
-  };
+
+    if (!currentWebsiteId) {
+      setError('Could not create website record. Please try again.');
+      setAnalyzing(false);
+      return;
+    }
+
+    const response = await fetch('/api/analyze-pages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        pages: pagesToUse, 
+        websiteId: currentWebsiteId, 
+        siteUrl: selectedSite 
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to analyze pages');
+    }
+
+    setPages(result.pages || []);
+    setSummary(result.summary || null);
+    setPlan(result.plan || 'free');
+  } catch (err) {
+    console.error('Error analyzing pages:', err);
+    setError(err instanceof Error ? err.message : 'Failed to analyze pages');
+  } finally {
+    setAnalyzing(false);
+  }
+};
 
   // Loading state
   if (gscLoading || loading) {
