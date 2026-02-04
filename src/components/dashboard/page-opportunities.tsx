@@ -163,7 +163,8 @@ export function PageOpportunities({ websiteId }: PageOpportunitiesProps) {
     let currentWebsiteId = websiteId;
     
     if (!currentWebsiteId) {
-      // Create website record if it doesn't exist
+      console.log('Creating website for:', selectedSite);
+      
       const createResponse = await fetch('/api/websites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -173,17 +174,20 @@ export function PageOpportunities({ websiteId }: PageOpportunitiesProps) {
         })
       });
       
-      if (createResponse.ok) {
-        const result = await createResponse.json();
-        currentWebsiteId = result.website?.id;
+      const createResult = await createResponse.json();
+      console.log('Website creation result:', createResult);
+      
+      if (createResponse.ok && createResult.website?.id) {
+        currentWebsiteId = createResult.website.id;
+      } else {
+        const errorMsg = createResult.details || createResult.error || 'Failed to create website';
+        setError(`Website creation failed: ${errorMsg}`);
+        setAnalyzing(false);
+        return;
       }
     }
 
-    if (!currentWebsiteId) {
-      setError('Could not create website record. Please try again.');
-      setAnalyzing(false);
-      return;
-    }
+    console.log('Analyzing pages with websiteId:', currentWebsiteId);
 
     const response = await fetch('/api/analyze-pages', {
       method: 'POST',
@@ -196,14 +200,19 @@ export function PageOpportunities({ websiteId }: PageOpportunitiesProps) {
     });
 
     const result = await response.json();
+    console.log('Analysis result:', result);
 
     if (!response.ok) {
-      throw new Error(result.error || 'Failed to analyze pages');
+      throw new Error(result.error || result.details || 'Failed to analyze pages');
     }
 
     setPages(result.pages || []);
     setSummary(result.summary || null);
     setPlan(result.plan || 'free');
+    
+    // Clear error on success
+    setError(null);
+    
   } catch (err) {
     console.error('Error analyzing pages:', err);
     setError(err instanceof Error ? err.message : 'Failed to analyze pages');
