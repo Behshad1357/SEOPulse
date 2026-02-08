@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
+import { isAdminUser } from '@/lib/admin-users';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-12-15.clover",  // Updated to 2026-compatible version
@@ -48,7 +49,13 @@ export async function POST(req: NextRequest) {
     if (!userInfo) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
+    // Add at the beginning of POST function (after getting user):
+    if (isAdminUser(userInfo?.email)) {
+      // Admins don't need to pay - redirect to dashboard
+      return NextResponse.json({ 
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?admin=true` 
+      });
+    }
     const { plan, coupon } = await req.json();
 
     if (!plan || !PRICE_IDS[plan]) {
