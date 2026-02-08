@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import { TrialBanner } from "@/components/dashboard/trial-banner";
-
+import { getEffectivePlan, isAdminUser } from "@/lib/admin-users";
 export default async function DashboardLayout({
   children,
 }: {
@@ -22,8 +22,9 @@ export default async function DashboardLayout({
     .eq("id", user.id)
     .single();
 
+  const effectivePlan = getEffectivePlan(user?.email, profile?.plan);
   // Check trial status for free users
-  if (profile?.plan === "free" && profile?.trial_ends_at) {
+  if (!isAdminUser(user?.email) && effectivePlan === "free" && profile?.trial_ends_at) {
     const trialEndDate = new Date(profile.trial_ends_at);
     const now = new Date();
     

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getEffectivePlan } from "@/lib/admin-users";
 
 export async function POST(request: Request) {
   try {
@@ -12,14 +13,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check if user has pro plan
+    // Check if user has pro plan (with admin bypass)
     const { data: profile } = await supabase
       .from("profiles")
       .select("plan")
       .eq("id", user.id)
       .single();
 
-    if (profile?.plan === "free") {
+    const effectivePlan = getEffectivePlan(user?.email, profile?.plan);
+
+    if (effectivePlan === "free") {
       return NextResponse.json(
         { error: "PDF reports require Pro plan" },
         { status: 403 }
@@ -39,7 +42,6 @@ export async function POST(request: Request) {
     }
 
     // For now, return a simple report structure
-    // In production, you'd generate actual PDF using libraries like jsPDF or Puppeteer
     const report = {
       generated_at: new Date().toISOString(),
       website: website.name,
