@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { DashboardContent } from "@/components/dashboard/dashboard-content";
+import { getEffectivePlan } from '@/lib/admin-users';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -20,7 +21,7 @@ export default async function DashboardPage() {
 
   const isGoogleConnected = !!profile?.google_refresh_token;
   const hasWebsites = !!(websites && websites.length > 0);
-  const userPlan = profile?.plan || "free";
+  const userPlan = getEffectivePlan(user?.email, profile?.plan);
   const firstWebsiteId = websites?.[0]?.id;
   
   return (

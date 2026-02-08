@@ -20,6 +20,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { useGSCData } from "@/hooks/useGSCData";
 import { GASection } from "@/components/dashboard/ga-section";
+import { isAdminUser, getEffectivePlan } from '@/lib/admin-users';
+
+// If there's any plan check in the props or logic, update it
 
 // Demo data for users without Google connected
 const demoMetrics = {

@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { getEffectivePlan } from '@/lib/admin-users';
 
 interface PageData {
   page: string;
@@ -230,7 +231,7 @@ export async function POST(req: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    const plan = profile?.plan || 'free';
+    const plan = getEffectivePlan(user?.email, profile?.plan);
 
     const { pages, websiteId, siteUrl } = await req.json();
 

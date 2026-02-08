@@ -17,6 +17,7 @@ import { useGSCData } from "@/hooks/useGSCData";
 import { PageScoreCard } from "./page-score-card";
 import { SiteSelector } from "./site-selector";
 import Link from "next/link";
+import { getEffectivePlan } from '@/lib/admin-users';
 
 interface PageScore {
   id: string;
