@@ -1,3 +1,4 @@
+// src/components/dashboard/insights-page-content.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -17,12 +18,16 @@ import {
   Calendar,
   ExternalLink,
   CheckCircle2,
+  Target,
+  BarChart3,
+  ArrowRight,
 } from "lucide-react";
 import { useGSCData } from "@/hooks/useGSCData";
 import { SEOHealthScore } from "@/components/dashboard/seo-health-score";
 import { KeywordOpportunities } from "@/components/dashboard/keyword-opportunities";
 import { SEOChecklist } from "@/components/dashboard/seo-checklist";
 import { trackAIInsightsGenerated } from "@/lib/analytics";
+import Link from "next/link";
 
 interface Insight {
   id: string;
@@ -80,136 +85,19 @@ const priorityConfig = {
   },
 };
 
-// Detailed insights for low-traffic/new sites
-const getLowTrafficInsights = (
-  siteUrl: string,
-  clicks: number,
-  impressions: number
-): Insight[] => {
-  const insights: Insight[] = [];
-  const domain = siteUrl
-    .replace("sc-domain:", "")
-    .replace(/https?:\/\//, "")
-    .replace(/\/$/, "");
-
-  const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
-
-  if (impressions > 0 && ctr < 2) {
-    insights.push({
-      id: `insight-ctr-${Date.now()}`,
-      website_id: siteUrl,
-      type: "opportunity",
-      title: "Improve Your Click-Through Rate",
-      description: `Your CTR is ${ctr.toFixed(2)}% (${clicks} clicks from ${impressions} impressions). The average CTR for position 1 is ~30%. Even small improvements in your title tags and meta descriptions can significantly increase clicks.`,
-      priority: "high",
-      created_at: new Date().toISOString(),
-      action_steps: [
-        "Write compelling title tags under 60 characters that include your target keyword",
-        "Create meta descriptions under 155 characters with a clear call-to-action",
-        "Use numbers, questions, or power words to stand out in search results",
-        "Add structured data (Schema markup) to get rich snippets",
-      ],
-      learn_more_url: "https://developers.google.com/search/docs/appearance/title-link",
-    });
-  }
-
-  if (impressions > 50 && clicks < 5) {
-    insights.push({
-      id: `insight-visibility-${Date.now()}`,
-      website_id: siteUrl,
-      type: "anomaly",
-      title: "High Visibility, Low Engagement",
-      description: `You're appearing ${impressions} times in search results but only getting ${clicks} click(s). This suggests your listings aren't compelling enough or you're ranking for irrelevant keywords.`,
-      priority: "high",
-      created_at: new Date().toISOString(),
-      action_steps: [
-        "Check which keywords you're ranking for in Google Search Console",
-        "Ensure your content actually matches the search intent for those keywords",
-        "Review competitors' titles and descriptions for the same keywords",
-        "Consider if the keywords are too competitive (ranking on page 2+)",
-      ],
-      learn_more_url: "https://search.google.com/search-console",
-    });
-  }
-
-  if (clicks < 10) {
-    insights.push({
-      id: `insight-newsite-${Date.now()}`,
-      website_id: siteUrl,
-      type: "recommendation",
-      title: "Build Topical Authority",
-      description: `For ${domain}, focus on becoming an authority in your niche. Google rewards sites that demonstrate expertise, authoritativeness, and trustworthiness (E-E-A-T).`,
-      priority: "high",
-      created_at: new Date().toISOString(),
-      action_steps: [
-        "Create a content cluster: 1 pillar page + 5-10 supporting articles on related topics",
-        "Interlink your content to show topical relationships",
-        "Add author bios with credentials to build trust",
-        "Get backlinks from relevant, authoritative sites in your niche",
-        "Publish consistently (aim for 2-4 quality articles per month)",
-      ],
-      learn_more_url: "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
-    });
-  }
-
-  insights.push({
-    id: `insight-technical-${Date.now()}`,
-    website_id: siteUrl,
-    type: "recommendation",
-    title: "Complete Your Technical SEO Checklist",
-    description: `Ensure ${domain} has a solid technical foundation. Technical issues can prevent Google from properly crawling and indexing your content.`,
-    priority: "medium",
-    created_at: new Date().toISOString(),
-    action_steps: [
-      "Submit your sitemap.xml to Google Search Console",
-      "Check for crawl errors in GSC and fix any issues",
-      "Ensure your site loads in under 3 seconds (use PageSpeed Insights)",
-      "Make sure your site is mobile-friendly (use Mobile-Friendly Test)",
-      "Implement HTTPS if not already done",
-      "Add robots.txt file with proper directives",
-    ],
-    learn_more_url: "https://pagespeed.web.dev/",
-  });
-
-  insights.push({
-    id: `insight-content-${Date.now()}`,
-    website_id: siteUrl,
-    type: "opportunity",
-    title: "Optimize Existing Content",
-    description: `Even with limited traffic, you can improve rankings by optimizing your existing pages. Focus on making each page the best resource for its target keyword.`,
-    priority: "medium",
-    created_at: new Date().toISOString(),
-    action_steps: [
-      "Use your target keyword in the H1, first paragraph, and subheadings",
-      "Add relevant images with descriptive alt text",
-      "Include internal links to and from other relevant pages",
-      "Answer related questions (check 'People Also Ask' in Google)",
-      "Update content regularly to keep it fresh",
-      "Aim for comprehensive content (typically 1,500-2,500 words for competitive topics)",
-    ],
-    learn_more_url: "https://developers.google.com/search/docs/fundamentals/seo-starter-guide",
-  });
-
-  insights.push({
-    id: `insight-quickwins-${Date.now()}`,
-    website_id: siteUrl,
-    type: "opportunity",
-    title: "Quick Wins for Immediate Impact",
-    description: `These actions can be completed today and may show results within weeks.`,
-    priority: "high",
-    created_at: new Date().toISOString(),
-    action_steps: [
-      "Claim and optimize your Google Business Profile (if local business)",
-      "Add your site to Bing Webmaster Tools for additional traffic",
-      "Create social media profiles linking to your site",
-      "Find and fix any broken links (404 errors)",
-      "Optimize your 3 most important pages first",
-    ],
-    learn_more_url: "https://www.bing.com/webmasters",
-  });
-
-  return insights;
+// Position-aware CTR benchmarks
+const EXPECTED_CTR: Record<number, number> = {
+  1: 0.319, 2: 0.246, 3: 0.185, 4: 0.133, 5: 0.095,
+  6: 0.068, 7: 0.051, 8: 0.036, 9: 0.028, 10: 0.023,
 };
+
+function getExpectedCTR(position: number): number {
+  if (position > 50) return 0.0005;
+  if (position > 30) return 0.001;
+  if (position > 20) return 0.002;
+  const rounded = Math.min(Math.max(Math.round(position), 1), 10);
+  return EXPECTED_CTR[rounded] || 0.003;
+}
 
 export function InsightsPageContent({
   isGoogleConnected,
@@ -253,30 +141,14 @@ export function InsightsPageContent({
 
     setLoading(true);
     try {
-      if (data.totals.clicks < 50 || data.totals.impressions < 500) {
-        const localInsights = getLowTrafficInsights(
-          selectedSite || "",
-          data.totals.clicks,
-          data.totals.impressions
-        );
-        setInsights(localInsights);
-        setLastGenerated(new Date());
-        
-        // Track AI insights generated
-        trackAIInsightsGenerated(selectedSite || "", localInsights.length);
-        
-        setLoading(false);
-        return;
-      }
-
       const response = await fetch("/api/ai/insights", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           totals: data.totals,
           trends: data.trends,
-          queries: data.queries.slice(0, 15),
-          pages: data.pages.slice(0, 10),
+          queries: data.queries.slice(0, 20),
+          pages: data.pages.slice(0, 15),
           siteUrl: selectedSite,
         }),
       });
@@ -286,25 +158,17 @@ export function InsightsPageContent({
         if (result.insights && result.insights.length > 0) {
           setInsights(result.insights);
           setLastGenerated(new Date());
-          
-          // Track AI insights generated
           trackAIInsightsGenerated(selectedSite || "", result.insights.length);
         }
       }
     } catch (error) {
       console.error("Error generating insights:", error);
-      const localInsights = getLowTrafficInsights(
-        selectedSite || "",
-        data.totals.clicks,
-        data.totals.impressions
-      );
-      setInsights(localInsights);
-      setLastGenerated(new Date());
     } finally {
       setLoading(false);
     }
   };
 
+  // Not connected state
   if (!isGoogleConnected) {
     return (
       <div className="space-y-6">
@@ -333,6 +197,7 @@ export function InsightsPageContent({
     );
   }
 
+  // Loading state
   if (gscLoading) {
     return (
       <div className="space-y-6">
@@ -350,6 +215,20 @@ export function InsightsPageContent({
     );
   }
 
+  // Calculate position-aware metrics for display
+  const avgPosition = data?.totals?.position || 0;
+  const expectedCTR = getExpectedCTR(avgPosition);
+  const actualCTR = data?.totals?.ctr || 0;
+  const ctrPerformance = expectedCTR > 0 ? ((actualCTR / expectedCTR) * 100).toFixed(0) : '0';
+  const positionPage = Math.ceil(avgPosition / 10);
+
+  // Count keyword categories
+  const queries = data?.queries || [];
+  const quickWinKeywords = queries.filter(q => q.position >= 8 && q.position <= 30);
+  const strikingKeywords = queries.filter(q => q.position > 30 && q.position <= 60);
+  const topKeywords = queries.filter(q => q.position <= 7);
+  const deepKeywords = queries.filter(q => q.position > 60);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -357,7 +236,7 @@ export function InsightsPageContent({
         <div>
           <h1 className="text-2xl font-bold text-gray-900">AI Insights</h1>
           <p className="text-gray-500 mt-1">
-            AI-powered recommendations to improve your SEO
+            Data-driven recommendations for your SEO
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -388,7 +267,7 @@ export function InsightsPageContent({
         </div>
       )}
 
-      {/* Data Summary */}
+      {/* Data Summary - Enhanced */}
       {data && (
         <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-100">
           <CardContent className="py-4">
@@ -432,7 +311,207 @@ export function InsightsPageContent({
         />
       )}
 
-      {/* Keyword Opportunities */}
+      {/* Position-Aware CTR Card - NEW */}
+      {data && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-blue-500" />
+              CTR Analysis (Position-Adjusted)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-sm text-gray-500 mb-1">Your CTR</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {(actualCTR * 100).toFixed(2)}%
+                </p>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-sm text-gray-500 mb-1">
+                  Expected CTR at Pos {avgPosition.toFixed(0)} (Page {positionPage})
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {(expectedCTR * 100).toFixed(2)}%
+                </p>
+              </div>
+              <div className={`rounded-lg p-4 ${
+                Number(ctrPerformance) >= 100 
+                  ? 'bg-green-50' 
+                  : Number(ctrPerformance) >= 70 
+                  ? 'bg-yellow-50' 
+                  : 'bg-red-50'
+              }`}>
+                <p className="text-sm text-gray-500 mb-1">Performance vs Benchmark</p>
+                <p className={`text-2xl font-bold ${
+                  Number(ctrPerformance) >= 100 
+                    ? 'text-green-700' 
+                    : Number(ctrPerformance) >= 70 
+                    ? 'text-yellow-700' 
+                    : 'text-red-700'
+                }`}>
+                  {ctrPerformance}%
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {Number(ctrPerformance) >= 100 
+                    ? '✅ Above average for your position' 
+                    : Number(ctrPerformance) >= 70
+                    ? '⚠️ Slightly below average'
+                    : avgPosition > 30
+                    ? '📍 Improve rankings first, then CTR'
+                    : '❌ Title/meta needs improvement'}
+                </p>
+              </div>
+            </div>
+            {avgPosition > 30 && (
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                <p className="text-sm text-blue-800">
+                  <strong>💡 Note:</strong> Your average position is {avgPosition.toFixed(1)} (page {positionPage}). 
+                  At this ranking depth, low CTR is normal — less than 1% of users scroll past page 3. 
+                  <strong> Focus on improving rankings before optimizing CTR.</strong>
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Keyword Distribution - NEW */}
+      {data && queries.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Target className="w-5 h-5 text-purple-500" />
+              Keyword Distribution
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-green-50 rounded-lg border border-green-100">
+                <p className="text-2xl font-bold text-green-700">{topKeywords.length}</p>
+                <p className="text-xs text-green-600 font-medium">Top 7 (Page 1)</p>
+                <p className="text-xs text-gray-500 mt-1">Protect these</p>
+              </div>
+              <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-100">
+                <p className="text-2xl font-bold text-blue-700">{quickWinKeywords.length}</p>
+                <p className="text-xs text-blue-600 font-medium">Pos 8-30 (Quick Wins)</p>
+                <p className="text-xs text-gray-500 mt-1">Highest ROI to improve</p>
+              </div>
+              <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-100">
+                <p className="text-2xl font-bold text-yellow-700">{strikingKeywords.length}</p>
+                <p className="text-xs text-yellow-600 font-medium">Pos 30-60 (Striking)</p>
+                <p className="text-xs text-gray-500 mt-1">Need content work</p>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <p className="text-2xl font-bold text-gray-700">{deepKeywords.length}</p>
+                <p className="text-xs text-gray-600 font-medium">Pos 60+ (Deep)</p>
+                <p className="text-xs text-gray-500 mt-1">Major work needed</p>
+              </div>
+            </div>
+
+            {/* Quick Win Keywords List */}
+            {quickWinKeywords.length > 0 && (
+              <div className="mt-4">
+                <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                  🎯 Quick Win Keywords (Positions 8-30)
+                </h4>
+                <div className="space-y-2">
+                  {quickWinKeywords.slice(0, 5).map((kw, i) => (
+                    <div key={i} className="flex items-center justify-between p-2 bg-blue-50 rounded border border-blue-100">
+                      <div>
+                        <span className="text-sm font-medium text-gray-900">
+                          &quot;{kw.keyword}&quot;
+                        </span>
+                        <span className="text-xs text-gray-500 ml-2">
+                          {kw.impressions} impressions
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-gray-500">
+                          {kw.clicks} clicks
+                        </span>
+                        <span className="text-xs font-medium px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
+                          Pos {kw.position.toFixed(1)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {quickWinKeywords.length > 5 && (
+                    <p className="text-xs text-gray-500 text-center">
+                      +{quickWinKeywords.length - 5} more quick win keywords
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Striking Distance Keywords */}
+            {strikingKeywords.length > 0 && quickWinKeywords.length === 0 && (
+              <div className="mt-4">
+                <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                  🎯 Striking Distance Keywords (Positions 30-60)
+                </h4>
+                <div className="space-y-2">
+                  {strikingKeywords.slice(0, 5).map((kw, i) => (
+                    <div key={i} className="flex items-center justify-between p-2 bg-yellow-50 rounded border border-yellow-100">
+                      <div>
+                        <span className="text-sm font-medium text-gray-900">
+                          &quot;{kw.keyword}&quot;
+                        </span>
+                        <span className="text-xs text-gray-500 ml-2">
+                          {kw.impressions} impressions
+                        </span>
+                      </div>
+                      <span className="text-xs font-medium px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded">
+                        Pos {kw.position.toFixed(1)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {quickWinKeywords.length === 0 && strikingKeywords.length === 0 && (
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg text-center">
+                <p className="text-sm text-gray-600">
+                  No keywords in positions 8-60 yet. Keep publishing quality content — 
+                  as Google discovers your pages, keywords will start appearing here.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Cross-link to Page Scores */}
+      {data && (
+        <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-100">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Target className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Page-by-Page Analysis</p>
+                  <p className="text-sm text-gray-600">
+                    Get specific fix recommendations for each URL
+                  </p>
+                </div>
+              </div>
+              <Link href="/dashboard">
+                <Button variant="outline" size="sm">
+                  View Page Scores
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Existing Keyword Opportunities Component */}
       {data && data.queries && data.queries.length > 0 && (
         <KeywordOpportunities keywords={data.queries} />
       )}
@@ -450,9 +529,17 @@ export function InsightsPageContent({
         </Card>
       )}
 
-      {/* Insights List */}
+      {/* AI Insights List */}
       {!loading && insights.length > 0 && (
         <div className="space-y-4">
+          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-purple-500" />
+            AI Recommendations
+            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+              {insights.length} insights
+            </span>
+          </h2>
+
           {insights.map((insight) => {
             const typeInfo = typeConfig[insight.type];
             const priorityInfo = priorityConfig[insight.priority];
@@ -479,7 +566,9 @@ export function InsightsPageContent({
                           {priorityInfo.label}
                         </span>
                       </div>
-                      <h3 className="font-semibold text-gray-900 mb-1">{insight.title}</h3>
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        {insight.title}
+                      </h3>
                       <p className="text-sm text-gray-700">{insight.description}</p>
 
                       {isExpanded && insight.action_steps && (
@@ -535,9 +624,11 @@ export function InsightsPageContent({
             <div className="p-3 bg-gray-100 rounded-full mb-4">
               <Sparkles className="w-8 h-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-1">Generating Insights...</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">
+              Ready to Generate Insights
+            </h3>
             <p className="text-gray-500 text-center max-w-sm mb-4">
-              Click the button below to generate AI insights based on your data.
+              Click the button below to analyze your data and generate personalized recommendations.
             </p>
             <Button onClick={generateInsights} disabled={loading}>
               <Sparkles className="w-4 h-4 mr-2" />
