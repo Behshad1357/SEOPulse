@@ -40,6 +40,7 @@ function getAdminClient() {
   );
 }
 
+// Extended expected CTR benchmarks (industry average from Advanced Web Ranking)
 const EXPECTED_CTR: Record<number, number> = {
   1: 0.319, 2: 0.246, 3: 0.185, 4: 0.133, 5: 0.095,
   6: 0.068, 7: 0.051, 8: 0.036, 9: 0.028, 10: 0.023,
@@ -48,6 +49,10 @@ const EXPECTED_CTR: Record<number, number> = {
 };
 
 function getExpectedCTR(position: number): number {
+  if (position > 100) return 0.0001;
+  if (position > 50) return 0.0005;
+  if (position > 30) return 0.001;
+  if (position > 20) return 0.002;
   const roundedPos = Math.min(Math.max(Math.round(position), 1), 20);
   return EXPECTED_CTR[roundedPos] || 0.003;
 }
@@ -56,146 +61,356 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
+// Extract page type from URL for context-aware recommendations
+function getPageType(url: string): string {
+  const path = url.toLowerCase();
+  if (path === '/' || path.includes('homepage') || path.endsWith('.com') || path.endsWith('.com/')) return 'homepage';
+  if (path.includes('/blog/') || path.includes('/post/') || path.includes('/article/')) return 'blog';
+  if (path.includes('/product/') || path.includes('/shop/')) return 'product';
+  if (path.includes('/category/') || path.includes('/tag/')) return 'category';
+  if (path.includes('/about') || path.includes('/contact') || path.includes('/privacy') || path.includes('/terms')) return 'utility';
+  if (path.includes('/service') || path.includes('/pricing')) return 'landing';
+  return 'page';
+}
+
+// Get position-tier label
+function getPositionTier(position: number): { tier: string; label: string; color: string } {
+  if (position <= 3) return { tier: 'top3', label: 'Top 3', color: 'green' };
+  if (position <= 10) return { tier: 'page1', label: 'Page 1', color: 'blue' };
+  if (position <= 20) return { tier: 'page2', label: 'Page 2', color: 'yellow' };
+  if (position <= 50) return { tier: 'page3to5', label: `Page ${Math.ceil(position / 10)}`, color: 'orange' };
+  return { tier: 'deep', label: `Page ${Math.ceil(position / 10)}`, color: 'red' };
+}
+
+// Smart recommendations based on page type and position
+function getPositionRecommendation(position: number, pageType: string, impressions: number): string {
+  const tier = getPositionTier(position);
+  
+  if (tier.tier === 'deep') {
+    // Position 50+
+    if (impressions < 20) {
+      return `This page ranks at position ${Math.round(position)} with very few impressions. Consider: 1) Check if this page is thin content (< 300 words) and expand it to 1500+ words, 2) Make sure the page targets a specific keyword in the title/H1, 3) If the topic is covered by another page, redirect this one to consolidate authority.`;
+    }
+    return `Position ${Math.round(position)} means Google sees this content but doesn't rank it well. Action plan: 1) Research what the top 3 results cover that you don't, 2) Add comprehensive sections, FAQs, and data, 3) Build 3-5 internal links from your strongest pages, 4) Consider if this keyword is too competitive and target a long-tail variant instead.`;
+  }
+  
+  if (tier.tier === 'page3to5') {
+    // Position 21-50
+    if (pageType === 'blog') {
+      return `This blog post is on page ${Math.ceil(position / 10)}. To break into top 20: 1) Update the content with fresh data and examples, 2) Add a FAQ section targeting related questions, 3) Improve internal linking from your homepage and related posts, 4) Check if the content matches search intent (informational vs transactional).`;
+    }
+    return `Position ${Math.round(position)} is the "striking distance" zone. Steps to improve: 1) Analyze the top 10 results for your target keyword, 2) Add missing subtopics they cover, 3) Improve page speed and Core Web Vitals, 4) Get 2-3 quality backlinks from relevant sites.`;
+  }
+  
+  if (tier.tier === 'page2') {
+    // Position 11-20
+    return `Position ${Math.round(position)} — you're SO close to page 1! High-impact actions: 1) Add 500+ words of unique, valuable content, 2) Optimize your title tag with your primary keyword near the front, 3) Build 2-3 internal links from high-authority pages on your site, 4) Get 1 quality backlink from a relevant site in your niche.`;
+  }
+  
+  if (tier.tier === 'page1') {
+    // Position 4-10
+    return `Page 1 but below the fold — users need to scroll to find you. To break into top 3: 1) Make your content the most comprehensive result, 2) Add schema markup (FAQ, HowTo, or Article), 3) Improve page load speed to under 2 seconds, 4) Add original images, data, or case studies that competitors lack.`;
+  }
+  
+  // Top 3
+  return `Top 3 position — excellent! Focus on defending: 1) Keep content updated monthly, 2) Monitor for new competitors, 3) Add fresh data and examples quarterly, 4) Maintain your backlink profile.`;
+}
+
+function getCTRRecommendation(position: number, ctr: number, pageType: string, url: string): string {
+  const pageName = url.split('/').pop()?.replace(/-/g, ' ') || 'this page';
+  
+  if (ctr === 0) {
+    if (position > 50) {
+      return `Zero clicks is expected at position ${Math.round(position)} — focus on improving rankings first before optimizing CTR. No one scrolls to page ${Math.ceil(position / 10)}.`;
+    }
+    if (position > 20) {
+      return `Getting impressions but zero clicks at position ${Math.round(position)}. Your snippet is appearing in searches but nobody clicks. Fix: 1) Write a compelling title under 60 chars with your keyword + a hook, 2) Write a meta description under 155 chars with a clear benefit and CTA.`;
+    }
+    return `Zero clicks despite being on page ${Math.ceil(position / 10)} is unusual. Check: 1) Is your title tag compelling? Add numbers, year, or brackets like [2026 Guide], 2) Is your meta description written or is Google auto-generating one?, 3) Do competitors have rich snippets (stars, images, FAQs) stealing clicks?`;
+  }
+  
+  if (pageType === 'blog') {
+    return `For blog content about "${pageName}": 1) Use a "How to" or "X Best" or "[Number] Ways" title format, 2) Add the current year [2026] to signal freshness, 3) Write a meta description that teases the key takeaway, 4) Add FAQ schema to potentially get rich snippets.`;
+  }
+  
+  if (pageType === 'homepage') {
+    return `For your homepage: 1) Include your brand name + primary value prop in the title, 2) Meta description should clearly state what you do and for whom, 3) Add Organization schema markup, 4) Make sure your favicon displays correctly in search results.`;
+  }
+  
+  return `Improve CTR for "${pageName}": 1) Front-load your primary keyword in the title tag, 2) Add emotional triggers: "Ultimate", "Complete", "Proven", 3) Write a meta description that answers "why should I click this?", 4) Test adding [Brackets] or (Parentheses) — they increase CTR by 33%.`;
+}
+
 function analyzePageSEO(page: PageData) {
   const issues: PageIssue[] = [];
   const opportunities: PageOpportunity[] = [];
-  let score = 100;
-
+  
   const expectedCTR = getExpectedCTR(page.position);
   const actualCTR = page.ctr;
   const ctrRatio = expectedCTR > 0 ? actualCTR / expectedCTR : 0;
   const ctrGap = expectedCTR - actualCTR;
+  const pageType = getPageType(page.page);
+  const posTier = getPositionTier(page.position);
 
-  // CTR Analysis
-  if (ctrRatio < 0.4 && page.impressions > 100) {
+  // ============================================
+  // SCORING - Much more nuanced now
+  // ============================================
+  let score = 0;
+  
+  // Position Score (0-40 points)
+  if (page.position <= 3) score += 40;
+  else if (page.position <= 5) score += 35;
+  else if (page.position <= 10) score += 28;
+  else if (page.position <= 15) score += 20;
+  else if (page.position <= 20) score += 15;
+  else if (page.position <= 30) score += 10;
+  else if (page.position <= 50) score += 5;
+  else score += 0; // Position 50+ gets 0 points for position
+
+  // CTR Score (0-30 points)
+  if (page.position > 50) {
+    // Don't penalize CTR for deep pages — CTR is expected to be ~0%
+    score += 10; // Give baseline points
+  } else if (ctrRatio >= 1.5) score += 30;
+  else if (ctrRatio >= 1.0) score += 25;
+  else if (ctrRatio >= 0.7) score += 18;
+  else if (ctrRatio >= 0.4) score += 10;
+  else if (actualCTR > 0) score += 5;
+  else score += 0; // 0% CTR
+
+  // Impressions Score (0-15 points) — signals relevance
+  if (page.impressions >= 1000) score += 15;
+  else if (page.impressions >= 500) score += 12;
+  else if (page.impressions >= 100) score += 9;
+  else if (page.impressions >= 20) score += 5;
+  else score += 2;
+
+  // Clicks Score (0-15 points)
+  if (page.clicks >= 100) score += 15;
+  else if (page.clicks >= 50) score += 12;
+  else if (page.clicks >= 10) score += 9;
+  else if (page.clicks >= 1) score += 5;
+  else score += 0;
+
+  // Cap score at 100
+  score = Math.min(100, Math.max(0, score));
+
+  // ============================================
+  // ISSUES - Context-aware and specific
+  // ============================================
+
+  // Issue: Position > 50 (deep pages)
+  if (page.position > 50) {
     issues.push({
       id: generateId(),
-      type: 'critical',
-      category: 'ctr',
-      title: 'Critical: CTR severely underperforming',
-      description: `Getting ${page.impressions} impressions but only ${page.clicks} clicks. Expected ~${(expectedCTR * 100).toFixed(1)}% CTR at position ${page.position.toFixed(1)}, but actual is ${(actualCTR * 100).toFixed(2)}%.`,
-      current: `${(actualCTR * 100).toFixed(2)}% CTR`,
-      recommendation: 'Rewrite title tag with power words. Add year, numbers, or brackets [Updated 2026] to stand out.',
-      impact: 10,
-      fixTime: 'quick'
+      type: page.impressions > 50 ? 'critical' : 'warning',
+      category: 'ranking',
+      title: `Buried on page ${Math.ceil(page.position / 10)} — needs significant work`,
+      description: `Position ${page.position.toFixed(1)} gets virtually zero organic traffic. ${
+        page.impressions > 50 
+          ? `However, ${page.impressions} impressions means Google is considering this page for relevant queries.`
+          : `With only ${page.impressions} impressions, Google barely considers this page relevant.`
+      }`,
+      current: `Position ${page.position.toFixed(1)} (${posTier.label})`,
+      recommendation: getPositionRecommendation(page.position, pageType, page.impressions),
+      impact: page.impressions > 100 ? 8 : 4,
+      fixTime: 'long'
     });
-    score -= 30;
-
-    const potentialClicks = Math.round(page.impressions * expectedCTR * 0.8) - page.clicks;
-    if (potentialClicks > 0) {
-      opportunities.push({
-        id: generateId(),
-        type: 'quick_win',
-        title: `Gain ~${potentialClicks} more clicks/month`,
-        description: `Improving title/meta to average CTR could gain ${potentialClicks} clicks.`,
-        potentialClicks,
-        effort: 'low'
-      });
-    }
-  } else if (ctrRatio < 0.7 && page.impressions > 50) {
+  }
+  // Issue: Position 21-50
+  else if (page.position > 20) {
     issues.push({
       id: generateId(),
       type: 'warning',
-      category: 'ctr',
-      title: 'Below average click-through rate',
-      description: `CTR of ${(actualCTR * 100).toFixed(2)}% is below expected ${(expectedCTR * 100).toFixed(1)}%.`,
-      current: `${(actualCTR * 100).toFixed(2)}% CTR`,
-      recommendation: 'Test a new meta description with clear value proposition and call-to-action.',
+      category: 'ranking',
+      title: `Ranking on ${posTier.label} — within striking distance`,
+      description: `Position ${page.position.toFixed(1)} with ${page.impressions} impressions. ${
+        page.impressions > 100
+          ? 'Good impression volume means this keyword has potential.'
+          : 'Low impressions suggest a niche or long-tail keyword.'
+      }`,
+      current: `Position ${page.position.toFixed(1)} (${posTier.label})`,
+      recommendation: getPositionRecommendation(page.position, pageType, page.impressions),
       impact: 7,
-      fixTime: 'quick'
-    });
-    score -= 15;
-  } else if (ctrRatio >= 1.2) {
-    opportunities.push({
-      id: generateId(),
-      type: 'maintain',
-      title: 'Excellent CTR - keep it up!',
-      description: `CTR is ${Math.round((ctrRatio - 1) * 100)}% above average.`,
-      potentialClicks: 0,
-      effort: 'low'
+      fixTime: 'medium'
     });
   }
+  // Issue: Position 11-20 (page 2)
+  else if (page.position > 10) {
+    issues.push({
+      id: generateId(),
+      type: 'critical',
+      category: 'ranking',
+      title: 'Page 2 — so close to page 1!',
+      description: `Position ${page.position.toFixed(1)} is agonizingly close. Only 0.63% of users click page 2 results. Moving to page 1 could increase clicks dramatically.`,
+      current: `Position ${page.position.toFixed(1)} (Page 2)`,
+      recommendation: getPositionRecommendation(page.position, pageType, page.impressions),
+      impact: 9,
+      fixTime: 'medium'
+    });
 
-  // Position Analysis
-  if (page.position >= 4 && page.position <= 10 && page.impressions > 200) {
+    const potentialClicks = Math.round(page.impressions * EXPECTED_CTR[8]) - page.clicks;
+    if (potentialClicks > 0) {
+      opportunities.push({
+        id: generateId(),
+        type: 'growth',
+        title: `Move to page 1: +${potentialClicks} clicks/month`,
+        description: `Breaking into position 8 could gain approximately ${potentialClicks} more monthly clicks.`,
+        potentialClicks,
+        effort: 'medium'
+      });
+    }
+  }
+  // Issue: Position 4-10 (page 1, below fold)
+  else if (page.position > 3) {
     issues.push({
       id: generateId(),
       type: 'warning',
       category: 'ranking',
       title: 'Page 1 but below the fold',
-      description: `Position ${page.position.toFixed(1)} means users must scroll. Top 3 could 3x clicks.`,
-      current: `Position ${page.position.toFixed(1)}`,
-      recommendation: 'Add 500+ words of content. Build 2-3 internal links. Get 1 quality backlink.',
+      description: `Position ${page.position.toFixed(1)} is on page 1 but most clicks go to top 3 results (75%+ of all clicks).`,
+      current: `Position ${page.position.toFixed(1)} (Page 1)`,
+      recommendation: getPositionRecommendation(page.position, pageType, page.impressions),
       impact: 8,
       fixTime: 'medium'
     });
-    score -= 10;
 
     const potentialClicks = Math.round(page.impressions * EXPECTED_CTR[3]) - page.clicks;
-    if (potentialClicks > 5) {
+    if (potentialClicks > 3) {
       opportunities.push({
         id: generateId(),
         type: 'growth',
-        title: `Move to top 3: +${potentialClicks} clicks`,
-        description: `Improving to top 3 could gain ~${potentialClicks} more clicks.`,
+        title: `Reach top 3: +${potentialClicks} clicks/month`,
+        description: `Moving from position ${page.position.toFixed(0)} to top 3 could gain ~${potentialClicks} clicks.`,
         potentialClicks,
         effort: 'medium'
       });
     }
-  } else if (page.position > 10 && page.position <= 20 && page.impressions > 100) {
-    issues.push({
-      id: generateId(),
-      type: 'critical',
-      category: 'ranking',
-      title: 'Page 2 - almost there!',
-      description: `Position ${page.position.toFixed(1)} (page 2). Only 0.63% of users click page 2 results.`,
-      current: `Position ${page.position.toFixed(1)} (Page 2)`,
-      recommendation: 'Significant content improvement needed. Analyze top 3 competitors. Build 3-5 backlinks.',
-      impact: 9,
-      fixTime: 'long'
-    });
-    score -= 25;
-  } else if (page.position > 20) {
-    issues.push({
-      id: generateId(),
-      type: 'info',
-      category: 'ranking',
-      title: 'Low ranking - needs major work',
-      description: `Position ${page.position.toFixed(1)} has almost no visibility.`,
-      current: `Position ${page.position.toFixed(1)}`,
-      recommendation: 'Either heavily invest in this page or redirect to a stronger page.',
-      impact: 5,
-      fixTime: 'long'
-    });
-    score -= 15;
-  } else if (page.position <= 3 && page.impressions > 100) {
+  }
+  // Top 3 — celebration!
+  else {
     opportunities.push({
       id: generateId(),
       type: 'maintain',
-      title: 'Top 3 ranking - protect it!',
-      description: `Position ${page.position.toFixed(1)} is excellent. Focus on maintaining.`,
+      title: '🏆 Top 3 ranking — protect this position!',
+      description: `Position ${page.position.toFixed(1)} is excellent. ${page.clicks} clicks from ${page.impressions} impressions. Keep content updated to maintain.`,
       potentialClicks: 0,
       effort: 'low'
     });
   }
 
-  // High impressions, low clicks
-  if (page.impressions > 500 && page.clicks < 5) {
+  // ============================================
+  // CTR ISSUES - Only when relevant
+  // ============================================
+  
+  // Only analyze CTR for pages where it matters (position < 50)
+  if (page.position <= 50) {
+    if (actualCTR === 0 && page.impressions > 50) {
+      issues.push({
+        id: generateId(),
+        type: page.position <= 20 ? 'critical' : 'warning',
+        category: 'ctr',
+        title: `Zero clicks despite ${page.impressions} impressions`,
+        description: `Your page appears in search results but nobody clicks. ${
+          page.position <= 20
+            ? 'At this ranking, you should be getting clicks. Your title/meta description needs urgent attention.'
+            : 'Improving your ranking should be the priority, then optimize CTR.'
+        }`,
+        current: `0% CTR (0 clicks from ${page.impressions} impressions)`,
+        recommendation: getCTRRecommendation(page.position, actualCTR, pageType, page.page),
+        impact: page.position <= 20 ? 9 : 5,
+        fixTime: 'quick'
+      });
+
+      if (page.position <= 20) {
+        const potentialClicks = Math.round(page.impressions * expectedCTR * 0.7);
+        if (potentialClicks > 0) {
+          opportunities.push({
+            id: generateId(),
+            type: 'quick_win',
+            title: `Fix title/meta: gain ~${potentialClicks} clicks/month`,
+            description: `A compelling title and meta description could capture ${potentialClicks} of those ${page.impressions} impressions.`,
+            potentialClicks,
+            effort: 'low'
+          });
+        }
+      }
+    }
+    else if (ctrRatio < 0.4 && page.impressions > 100 && page.position <= 20) {
+      issues.push({
+        id: generateId(),
+        type: 'critical',
+        category: 'ctr',
+        title: 'CTR significantly below average',
+        description: `Getting ${(actualCTR * 100).toFixed(2)}% CTR but expected ~${(expectedCTR * 100).toFixed(1)}% at position ${page.position.toFixed(0)}. That's ${Math.round((1 - ctrRatio) * 100)}% below benchmark.`,
+        current: `${(actualCTR * 100).toFixed(2)}% CTR (expected: ${(expectedCTR * 100).toFixed(1)}%)`,
+        recommendation: getCTRRecommendation(page.position, actualCTR, pageType, page.page),
+        impact: 8,
+        fixTime: 'quick'
+      });
+
+      const potentialClicks = Math.round(page.impressions * expectedCTR * 0.8) - page.clicks;
+      if (potentialClicks > 0) {
+        opportunities.push({
+          id: generateId(),
+          type: 'quick_win',
+          title: `Optimize snippet: +${potentialClicks} clicks/month`,
+          description: `Improving to average CTR for your position could gain ${potentialClicks} additional clicks.`,
+          potentialClicks,
+          effort: 'low'
+        });
+      }
+    }
+    else if (ctrRatio < 0.7 && page.impressions > 50 && page.position <= 20) {
+      issues.push({
+        id: generateId(),
+        type: 'warning',
+        category: 'ctr',
+        title: 'CTR slightly below average',
+        description: `${(actualCTR * 100).toFixed(2)}% CTR vs expected ${(expectedCTR * 100).toFixed(1)}% for position ${page.position.toFixed(0)}.`,
+        current: `${(actualCTR * 100).toFixed(2)}% CTR`,
+        recommendation: getCTRRecommendation(page.position, actualCTR, pageType, page.page),
+        impact: 5,
+        fixTime: 'quick'
+      });
+    }
+    else if (ctrRatio >= 1.2 && page.position <= 20) {
+      const aboveAvg = Math.round((ctrRatio - 1) * 100);
+      opportunities.push({
+        id: generateId(),
+        type: 'maintain',
+        title: `Strong CTR — ${aboveAvg}% above average`,
+        description: `Your snippet outperforms competitors at similar positions. Whatever you're doing with your title/meta, keep it up!`,
+        potentialClicks: 0,
+        effort: 'low'
+      });
+    }
+  }
+
+  // ============================================
+  // HIGH POTENTIAL ALERTS
+  // ============================================
+  
+  if (page.impressions > 500 && page.clicks < 5 && page.position <= 30) {
     issues.push({
       id: generateId(),
       type: 'critical',
       category: 'opportunity',
-      title: 'Massive untapped potential',
-      description: `${page.impressions.toLocaleString()} impressions but only ${page.clicks} clicks!`,
-      current: `${page.impressions} impressions → ${page.clicks} clicks`,
-      recommendation: 'Title/meta failing badly. Try: "How to [X] in 2026" or "[Number] Best [X]"',
+      title: `🔥 High-potential page: ${page.impressions.toLocaleString()} impressions wasted`,
+      description: `This page appears in ${page.impressions.toLocaleString()} searches but captures only ${page.clicks} clicks. ${
+        page.position <= 20 
+          ? 'At this position, a better title and meta description could unlock significant traffic.'
+          : `First priority: improve from position ${page.position.toFixed(0)} to top 20.`
+      }`,
+      current: `${page.impressions.toLocaleString()} impressions → ${page.clicks} clicks (${(actualCTR * 100).toFixed(2)}% conversion)`,
+      recommendation: page.position <= 20
+        ? getCTRRecommendation(page.position, actualCTR, pageType, page.page)
+        : getPositionRecommendation(page.position, pageType, page.impressions),
       impact: 10,
-      fixTime: 'quick'
+      fixTime: page.position <= 20 ? 'quick' : 'long'
     });
-    score -= 20;
   }
 
-  score = Math.max(0, Math.min(100, score));
+  // Sort issues by impact
   issues.sort((a, b) => b.impact - a.impact);
 
   return {
@@ -208,10 +423,16 @@ function analyzePageSEO(page: PageData) {
       ctr: page.ctr,
       position: page.position,
       expectedCtr: expectedCTR,
-      ctrGap
+      ctrGap,
+      positionTier: posTier.label,
+      pageType
     }
   };
 }
+
+// ============================================
+// POST & GET handlers (keep the same)
+// ============================================
 
 export async function POST(req: NextRequest) {
   try {
@@ -224,7 +445,6 @@ export async function POST(req: NextRequest) {
 
     const adminClient = getAdminClient();
     
-    // Get user plan
     const { data: profile } = await adminClient
       .from('profiles')
       .select('plan')
@@ -275,13 +495,13 @@ export async function POST(req: NextRequest) {
 
     const summary = {
       totalPages: analyzedPages.length,
-      avgScore: Math.round(analyzedPages.reduce((acc, p) => acc + p.score, 0) / analyzedPages.length),
-      criticalIssues: analyzedPages.reduce((acc, p) => 
+      avgScore: Math.round(analyzedPages.reduce((acc: number, p: any) => acc + p.score, 0) / analyzedPages.length),
+      criticalIssues: analyzedPages.reduce((acc: number, p: any) => 
         acc + p.issues.filter((i: PageIssue) => i.type === 'critical').length, 0),
-      quickWins: analyzedPages.reduce((acc, p) => 
+      quickWins: analyzedPages.reduce((acc: number, p: any) => 
         acc + p.opportunities.filter((o: PageOpportunity) => o.type === 'quick_win').length, 0),
-      potentialClicks: analyzedPages.reduce((acc, p) => 
-        acc + p.opportunities.reduce((sum, o: PageOpportunity) => sum + o.potentialClicks, 0), 0),
+      potentialClicks: analyzedPages.reduce((acc: number, p: any) => 
+        acc + p.opportunities.reduce((sum: number, o: PageOpportunity) => sum + o.potentialClicks, 0), 0),
     };
 
     return NextResponse.json({ success: true, pages: data, summary, plan });
