@@ -44,8 +44,9 @@ export const metadata: Metadata = {
   },
 };
 
-// ✅ ADD JSON-LD SCHEMA FOR RICH SNIPPETS
-const jsonLd = {
+// Replace the jsonLd const with this (includes both SoftwareApplication + FAQPage)
+
+const softwareSchema = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   name: "SEOPulse",
@@ -62,20 +63,100 @@ const jsonLd = {
     ratingValue: "4.9",
     ratingCount: "127",
   },
-  description: "AI-powered SEO tool that turns Google Search Console data into actionable recommendations for traffic growth.",
+  description:
+    "AI-powered SEO analytics tool that connects to Google Search Console to provide actionable insights for organic traffic growth.",
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "How does SEOPulse connect to my data?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "SEOPulse connects securely to your Google Search Console using OAuth. We only request read-only access. Your credentials are never stored, and you can revoke access anytime from your Google account.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is the free plan really free forever?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes! Our free plan includes 1 website with basic metrics and 7-day history. No credit card required, no trial period. Use it forever or upgrade when you need more.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What makes SEOPulse different from SEMrush or Ahrefs?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "SEOPulse focuses specifically on Google Search Console data and AI-powered actionable insights. We're simpler, more affordable (\$19 vs \$100+), and tell you exactly what to do—not just show you data.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can I cancel anytime?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Absolutely. No contracts, no commitments. Cancel anytime from your dashboard. You'll keep access until the end of your billing period.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is my data secure?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. We use industry-standard encryption (SSL/TLS) for all data transfers. Your data is stored securely on encrypted servers and never shared with third parties.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What is Google Search Console?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Google Search Console is a free tool from Google that shows how your website performs in search results. It shows your clicks, impressions, rankings, and indexing status. SEOPulse connects to it to provide AI-powered insights.",
+      },
+    },
+  ],
+};
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "SEOPulse",
+  url: "https://seopulse.digital",
+  logo: "https://seopulse.digital/logo.png",
+  description: "AI-powered SEO analytics platform",
+  contactPoint: {
+    "@type": "ContactPoint",
+    email: "seopulse.help@gmail.com",
+    contactType: "customer support",
+  },
+  sameAs: [],
 };
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
-      {/* ✅ ADD JSON-LD SCRIPT */}
+      {/* Schema Markup */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      
       {/* Navigation */}
       <nav className="border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="text-xl font-bold text-blue-600">
               SEOPulse
@@ -116,17 +197,19 @@ export default function HomePage() {
             Users report 25% avg traffic increase in 60 days
           </div>
 
-          {/* Headline */}
+          {/* Headline - SEO optimized while still compelling */}
           <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 leading-tight mb-6">
-            Turn Messy GSC Data Into<br />
-            <span className="text-blue-600">AI Action Items That Grow Traffic</span>
+            AI-Powered SEO Tool That<br />
+            <span className="text-blue-600">Turns Search Console Data Into Growth</span>
           </h1>
 
-          {/* Subheadline */}
+          {/* Subheadline - include target keywords naturally */}
           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-4">
-            Connect Google Search Console in 30 seconds. Get instant AI insights on which pages to fix,
-            what keywords to target, and exactly how to grow your organic traffic.
+            Connect Google Search Console in 30 seconds. Get AI-powered SEO insights 
+            on which pages to fix, what keywords to target, and how to improve 
+            your organic traffic and rankings.
           </p>
+
 
           {/* Supporting Line */}
           <p className="text-lg text-gray-600 max-w-xl mx-auto mt-2 mb-8">
@@ -328,7 +411,65 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
+      {/* What is SEOPulse - SEO Content Section */}
+      <section className="py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+            What is SEOPulse?
+          </h2>
+          <div className="prose prose-lg max-w-none text-gray-600 space-y-4">
+            <p>
+              <strong>SEOPulse</strong> is an AI-powered SEO analytics tool that connects 
+              directly to your <strong>Google Search Console</strong> account to provide 
+              actionable insights for growing organic traffic. Instead of spending hours 
+              analyzing raw data, SEOPulse&apos;s artificial intelligence identifies your 
+              biggest opportunities and tells you exactly what to fix.
+            </p>
+            <p>
+              Whether you&apos;re a small business owner, freelance SEO consultant, or 
+              digital marketing agency, SEOPulse helps you understand which pages need 
+              attention, which keywords to target, and how to improve your 
+              <strong> click-through rate (CTR)</strong> and <strong>search rankings</strong>.
+            </p>
+            <div className="grid md:grid-cols-2 gap-6 my-8">
+              <div className="bg-blue-50 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  For Small Businesses
+                </h3>
+                <p className="text-gray-600 text-base">
+                  No SEO expertise needed. Connect your site and get plain-English 
+                  recommendations like &quot;Update your homepage title to include your 
+                  main keyword&quot; or &quot;This blog post could rank on page 1 with 
+                  500 more words.&quot;
+                </p>
+              </div>
+              <div className="bg-blue-50 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  For SEO Professionals & Agencies
+                </h3>
+                <p className="text-gray-600 text-base">
+                  Manage multiple client websites from one dashboard. Generate white-label 
+                  PDF reports, track keyword rankings over 90 days, and use AI page scoring 
+                  to prioritize your SEO work.
+                </p>
+              </div>
+            </div>
+            <p>
+              SEOPulse analyzes your <strong>search performance data</strong> including 
+              clicks, impressions, average position, and CTR for every page and keyword. 
+              Our AI compares your performance against industry benchmarks and identifies 
+              pages that are underperforming — like a page getting 500 impressions but 
+              zero clicks because the title tag isn&apos;t compelling enough.
+            </p>
+            <p>
+              <strong>Start free</strong> with one website and basic metrics. Upgrade to 
+              Pro (\$19/month) for up to 5 websites, full AI insights, 90-day history, 
+              and PDF reports. Agencies get unlimited websites, white-label reports, and 
+              API access for \$49/month.
+            </p>
+          </div>
+        </div>
+      </section>
       {/* How It Works - OPTIMIZED */}
       <section className="py-20 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
@@ -613,9 +754,12 @@ export default function HomePage() {
             <div>
               <h4 className="font-semibold text-gray-900 mb-3">Resources</h4>
               <ul className="space-y-2 text-gray-600">
-                <li><Link href="/blog" className="hover:text-gray-900">Blog</Link></li>
-                <li><Link href="/blog/what-is-google-search-console" className="hover:text-gray-900">GSC Guide</Link></li>
-                <li><Link href="/contact" className="hover:text-gray-900">Contact</Link></li>
+                <li><Link href="/blog" className="hover:text-gray-900">SEO Blog</Link></li>
+                <li><Link href="/blog/what-is-google-search-console" className="hover:text-gray-900">What is Google Search Console?</Link></li>
+                <li><Link href="/blog/improve-click-through-rate" className="hover:text-gray-900">How to Improve CTR</Link></li>
+                <li><Link href="/blog/small-business-seo-guide" className="hover:text-gray-900">Small Business SEO Guide</Link></li>
+                <li><Link href="/blog/ai-seo-tools-2026" className="hover:text-gray-900">Best AI SEO Tools 2026</Link></li>
+                <li><Link href="/contact" className="hover:text-gray-900">Contact Us</Link></li>
               </ul>
             </div>
             <div>
