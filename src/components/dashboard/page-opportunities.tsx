@@ -256,7 +256,8 @@ export function PageOpportunities({ websiteId }: PageOpportunitiesProps) {
   // Determine available pages
   const availablePages = pagesData.length > 0 ? pagesData : (data?.pages || []);
   const hasPages = availablePages.length > 0;
-  const showUpgradeMessage = plan === 'free' && availablePages.length > 5;
+  const pageLimit = plan === 'free' ? 5 : plan === 'pro' ? 50 : 500;
+  const showUpgradeMessage = (plan === 'free' || plan === 'pro') && availablePages.length > pageLimit;
 
   return (
     <div className="space-y-6">

@@ -10,6 +10,7 @@ import { ConnectGoogleButton } from "@/components/dashboard/connect-google-butto
 import { CancelSubscriptionButton } from "@/components/dashboard/cancel-subscription-button";
 import { SettingsTracker } from "@/components/dashboard/settings-tracker";
 import { User, CreditCard, Link, CheckCircle, AlertCircle, Check, Shield } from "lucide-react";
+import { getEffectivePlan } from "@/lib/admin-users"; // Added import
 
 export default async function SettingsPage({
   searchParams,
@@ -26,6 +27,9 @@ export default async function SettingsPage({
     .select("*")
     .eq("id", user?.id)
     .single();
+
+  // Add effective plan calculation
+  const effectivePlan = getEffectivePlan(user?.email, profile?.plan);
 
   const { data: subscription } = await supabase
     .from("subscriptions")
@@ -141,7 +145,7 @@ export default async function SettingsPage({
             <div>
               <div className="flex items-center gap-2">
                 <p className="font-semibold text-gray-900 capitalize text-lg">
-                  {profile?.plan || "Free"} Plan
+                  {effectivePlan || "Free"} Plan
                 </p>
                 {profile?.plan !== "free" && (
                   <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
