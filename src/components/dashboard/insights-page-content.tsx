@@ -24,7 +24,6 @@ import {
 } from "lucide-react";
 import { useGSCData } from "@/hooks/useGSCData";
 import { SEOHealthScore } from "@/components/dashboard/seo-health-score";
-import { KeywordOpportunities } from "@/components/dashboard/keyword-opportunities";
 import { SEOChecklist } from "@/components/dashboard/seo-checklist";
 import { trackAIInsightsGenerated } from "@/lib/analytics";
 import Link from "next/link";
@@ -224,7 +223,7 @@ export function InsightsPageContent({
 
   // Count keyword categories
   const queries = data?.queries || [];
-  const quickWinKeywords = queries.filter(q => q.position >= 8 && q.position <= 30);
+  const quickWinKeywords = queries.filter(q => q.position >= 8 && q.position <= 30 && q.impressions >= 3);
   const strikingKeywords = queries.filter(q => q.position > 30 && q.position <= 60);
   const topKeywords = queries.filter(q => q.position <= 7);
   const deepKeywords = queries.filter(q => q.position > 60);
@@ -509,11 +508,6 @@ export function InsightsPageContent({
             </div>
           </CardContent>
         </Card>
-      )}
-
-      {/* Existing Keyword Opportunities Component */}
-      {data && data.queries && data.queries.length > 0 && (
-        <KeywordOpportunities keywords={data.queries} />
       )}
 
       {/* SEO Checklist */}

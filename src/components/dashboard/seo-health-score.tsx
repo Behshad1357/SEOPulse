@@ -1,3 +1,4 @@
+// src/components/dashboard/seo-health-score.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,7 +8,20 @@ interface SEOHealthScoreProps {
   impressions: number;
   ctr: number;
   position: number;
-  pagesIndexed?: number;
+}
+
+const EXPECTED_CTR: Record<number, number> = {
+  1: 0.319, 2: 0.246, 3: 0.185, 4: 0.133, 5: 0.095,
+  6: 0.068, 7: 0.051, 8: 0.036, 9: 0.028, 10: 0.023,
+};
+
+function getExpectedCTR(position: number): number {
+  if (position > 100) return 0.0001;
+  if (position > 50) return 0.0005;
+  if (position > 30) return 0.001;
+  if (position > 20) return 0.002;
+  const rounded = Math.min(Math.max(Math.round(position), 1), 10);
+  return EXPECTED_CTR[rounded] || 0.003;
 }
 
 export function SEOHealthScore({
@@ -18,49 +32,59 @@ export function SEOHealthScore({
 }: SEOHealthScoreProps) {
   const [animatedScore, setAnimatedScore] = useState(0);
 
-  // Calculate SEO Health Score (0-100)
   const calculateScore = () => {
     let score = 0;
 
-    // CTR Score (max 25 points)
-    // Average CTR is ~2%, excellent is >5%
-    const ctrPercent = ctr * 100;
-    if (ctrPercent >= 5) score += 25;
-    else if (ctrPercent >= 3) score += 20;
-    else if (ctrPercent >= 2) score += 15;
-    else if (ctrPercent >= 1) score += 10;
-    else if (ctrPercent > 0) score += 5;
-
-    // Position Score (max 25 points)
-    // Position 1-3 is excellent, 4-10 is good
-    if (position > 0 && position <= 3) score += 25;
-    else if (position <= 5) score += 20;
-    else if (position <= 10) score += 15;
-    else if (position <= 20) score += 10;
+    // Position Score (max 30 points) — most important
+    if (position > 0 && position <= 3) score += 30;
+    else if (position <= 5) score += 25;
+    else if (position <= 10) score += 20;
+    else if (position <= 20) score += 15;
+    else if (position <= 30) score += 10;
     else if (position <= 50) score += 5;
+    else score += 2;
 
-    // Impressions Score (max 25 points)
-    // Shows visibility
+    // CTR Score RELATIVE to position (max 25 points)
+    const expectedCTR = getExpectedCTR(position);
+    const ctrRatio = expectedCTR > 0 ? ctr / expectedCTR : 0;
+    
+    if (ctrRatio >= 1.5) score += 25;
+    else if (ctrRatio >= 1.0) score += 20;
+    else if (ctrRatio >= 0.7) score += 15;
+    else if (ctrRatio >= 0.3) score += 8;
+    else if (ctr > 0) score += 3;
+    else {
+      // 0% CTR — but don't penalize harshly if position is deep
+      if (position > 50) score += 5; // expected at deep positions
+      else if (position > 20) score += 2;
+      else score += 0; // 0 CTR on page 1-2 is a real problem
+    }
+
+    // Impressions Score (max 25 points) — shows Google considers you relevant
     if (impressions >= 10000) score += 25;
-    else if (impressions >= 5000) score += 20;
-    else if (impressions >= 1000) score += 15;
+    else if (impressions >= 5000) score += 22;
+    else if (impressions >= 1000) score += 18;
+    else if (impressions >= 500) score += 14;
     else if (impressions >= 100) score += 10;
-    else if (impressions > 0) score += 5;
+    else if (impressions >= 20) score += 6;
+    else if (impressions > 0) score += 3;
 
-    // Clicks Score (max 25 points)
-    // Shows engagement
-    if (clicks >= 1000) score += 25;
-    else if (clicks >= 500) score += 20;
+    // Clicks Score (max 20 points) — actual engagement
+    if (clicks >= 1000) score += 20;
+    else if (clicks >= 500) score += 18;
     else if (clicks >= 100) score += 15;
-    else if (clicks >= 10) score += 10;
-    else if (clicks > 0) score += 5;
+    else if (clicks >= 50) score += 12;
+    else if (clicks >= 10) score += 8;
+    else if (clicks >= 1) score += 4;
+    else score += 0;
 
     return Math.min(100, Math.max(0, score));
   };
 
   const score = calculateScore();
+  const expectedCTR = getExpectedCTR(position);
+  const ctrRatio = expectedCTR > 0 ? ctr / expectedCTR : 0;
 
-  // Animate score on mount
   useEffect(() => {
     const timer = setTimeout(() => {
       const interval = setInterval(() => {
@@ -73,11 +97,9 @@ export function SEOHealthScore({
         });
       }, 20);
     }, 300);
-
     return () => clearTimeout(timer);
   }, [score]);
 
-  // Get color based on score
   const getScoreColor = (s: number) => {
     if (s >= 80) return { color: "#22c55e", label: "Excellent", bg: "bg-green-500" };
     if (s >= 60) return { color: "#84cc16", label: "Good", bg: "bg-lime-500" };
@@ -87,43 +109,49 @@ export function SEOHealthScore({
   };
 
   const scoreInfo = getScoreColor(animatedScore);
-
-  // Calculate stroke dashoffset for circular progress
   const circumference = 2 * Math.PI * 45;
   const strokeDashoffset = circumference - (animatedScore / 100) * circumference;
+
+  // Position-aware CTR label
+  const getCTRLabel = () => {
+    if (position > 50) return "Expected at this depth";
+    if (ctrRatio >= 1.2) return "Above average for position";
+    if (ctrRatio >= 0.7) return "Normal for position";
+    if (ctr > 0) return "Below average for position";
+    return position > 20 ? "Normal at this depth" : "Needs improvement";
+  };
+
+  // Position label
+  const getPositionLabel = () => {
+    if (position <= 3) return "Excellent — Top 3";
+    if (position <= 10) return "Good — Page 1";
+    if (position <= 20) return "Close — Page 2";
+    if (position <= 50) return `Page ${Math.ceil(position / 10)} — Needs work`;
+    return `Page ${Math.ceil(position / 10)} — Major work needed`;
+  };
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">SEO Health Score</h3>
-      
+
       <div className="flex items-center gap-8">
         {/* Circular Progress */}
-        <div className="relative w-32 h-32">
+        <div className="relative w-32 h-32 flex-shrink-0">
           <svg className="w-32 h-32 transform -rotate-90">
-            {/* Background circle */}
             <circle
-              cx="64"
-              cy="64"
-              r="45"
-              stroke="#e5e7eb"
-              strokeWidth="10"
-              fill="none"
+              cx="64" cy="64" r="45"
+              stroke="#e5e7eb" strokeWidth="10" fill="none"
             />
-            {/* Progress circle */}
             <circle
-              cx="64"
-              cy="64"
-              r="45"
+              cx="64" cy="64" r="45"
               stroke={scoreInfo.color}
-              strokeWidth="10"
-              fill="none"
+              strokeWidth="10" fill="none"
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
               className="transition-all duration-1000 ease-out"
             />
           </svg>
-          {/* Score text in center */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-3xl font-bold text-gray-900">{animatedScore}</span>
             <span className="text-xs text-gray-500">out of 100</span>
@@ -135,27 +163,27 @@ export function SEOHealthScore({
           <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white ${scoreInfo.bg} mb-3`}>
             {scoreInfo.label}
           </div>
-          
+
           <div className="space-y-2">
-            <ScoreBreakdownItem 
-              label="Click-Through Rate" 
-              value={`${(ctr * 100).toFixed(2)}%`}
-              score={ctr >= 0.05 ? 100 : ctr >= 0.02 ? 60 : ctr > 0 ? 30 : 0}
+            <ScoreBreakdownItem
+              label="Average Position"
+              value={position > 0 ? `${position.toFixed(1)} (${getPositionLabel()})` : "N/A"}
+              score={position <= 3 ? 100 : position <= 10 ? 70 : position <= 20 ? 50 : position <= 50 ? 20 : 5}
             />
-            <ScoreBreakdownItem 
-              label="Average Position" 
-              value={position > 0 ? position.toFixed(1) : "N/A"}
-              score={position <= 10 ? 100 : position <= 20 ? 60 : position <= 50 ? 30 : 0}
+            <ScoreBreakdownItem
+              label="Click-Through Rate"
+              value={`${(ctr * 100).toFixed(2)}% (${getCTRLabel()})`}
+              score={ctrRatio >= 1.5 ? 100 : ctrRatio >= 1.0 ? 80 : ctrRatio >= 0.7 ? 60 : ctr > 0 ? 30 : position > 50 ? 20 : 0}
             />
-            <ScoreBreakdownItem 
-              label="Visibility" 
+            <ScoreBreakdownItem
+              label="Visibility"
               value={`${impressions.toLocaleString()} impressions`}
-              score={impressions >= 1000 ? 100 : impressions >= 100 ? 60 : impressions > 0 ? 30 : 0}
+              score={impressions >= 5000 ? 100 : impressions >= 1000 ? 70 : impressions >= 100 ? 40 : impressions > 0 ? 15 : 0}
             />
-            <ScoreBreakdownItem 
-              label="Engagement" 
+            <ScoreBreakdownItem
+              label="Engagement"
               value={`${clicks.toLocaleString()} clicks`}
-              score={clicks >= 100 ? 100 : clicks >= 10 ? 60 : clicks > 0 ? 30 : 0}
+              score={clicks >= 100 ? 100 : clicks >= 10 ? 60 : clicks > 0 ? 20 : 0}
             />
           </div>
         </div>
@@ -164,18 +192,19 @@ export function SEOHealthScore({
   );
 }
 
-function ScoreBreakdownItem({ 
-  label, 
-  value, 
-  score 
-}: { 
-  label: string; 
-  value: string; 
+function ScoreBreakdownItem({
+  label,
+  value,
+  score,
+}: {
+  label: string;
+  value: string;
   score: number;
 }) {
   const getBarColor = (s: number) => {
     if (s >= 80) return "bg-green-500";
     if (s >= 50) return "bg-yellow-500";
+    if (s >= 20) return "bg-orange-500";
     return "bg-red-500";
   };
 
@@ -184,10 +213,10 @@ function ScoreBreakdownItem({
       <div className="flex-1">
         <div className="flex justify-between text-sm mb-1">
           <span className="text-gray-600">{label}</span>
-          <span className="font-medium text-gray-900">{value}</span>
+          <span className="font-medium text-gray-900 text-xs">{value}</span>
         </div>
         <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-          <div 
+          <div
             className={`h-full ${getBarColor(score)} transition-all duration-500`}
             style={{ width: `${score}%` }}
           />

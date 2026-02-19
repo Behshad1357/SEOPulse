@@ -218,7 +218,7 @@ function generateDataDrivenInsights(data: GSCData) {
         title: `Double Down on "${bestPageName}"`,
         description: `"${bestPageName}" is your best performer with ${bestPage.clicks} clicks from ${bestPage.impressions} impressions (${(bestPage.ctr * 100).toFixed(2)}% CTR) at position ${bestPage.position.toFixed(1)}. ${
           bestPage.position > 10
-            ? `Moving this to page 1 could multiply clicks ${Math.round(EXPECTED_CTR[5] / getExpectedCTR(bestPage.position))}x.`
+            ? `Moving to top 10 could dramatically increase clicks — page 1 results get 95% of all clicks.`
             : `This page is working well. Create related content to build a topic cluster around it.`
         }`,
         priority: "medium",
@@ -246,8 +246,8 @@ function generateDataDrivenInsights(data: GSCData) {
   if (queries.length > 0) {
     // Quick wins: positions 8-30 (not just 8-20)
     const quickWins = queries
-      .filter(q => q.position >= 8 && q.position <= 30)
-      .sort((a, b) => a.position - b.position);
+      .filter(q => q.position >= 8 && q.position <= 30 && q.impressions >= 5)
+      .sort((a, b) => b.impressions - a.impressions);
 
     // Striking distance: positions 30-60
     const strikingDistance = queries
